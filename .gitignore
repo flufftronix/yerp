@@ -20,3 +20,7 @@
 # !esphome/
 # !esphome/*.yaml
 # !esphome/*.h
+
+#whitelist documentation
+!README.md
+!LICENSE.md
