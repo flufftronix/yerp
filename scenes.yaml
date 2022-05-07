@@ -1,190 +1,190 @@
-- id: '1636581802027'
-  name: '[Inst Cool] Orange'
+- id: "1636581802027"
+  name: "[Inst Cool] Orange"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 30
-      - 100
+        - 30
+        - 100
       rgb_color:
-      - 255
-      - 127
-      - 0
+        - 255
+        - 127
+        - 0
       xy_color:
-      - 0.612
-      - 0.374
+        - 0.612
+        - 0.374
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
-- id: '1636581885316'
-  name: '[Inst Cool] Blue'
+      state: "on"
+- id: "1636581885316"
+  name: "[Inst Cool] Blue"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 240
-      - 100
+        - 240
+        - 100
       rgb_color:
-      - 0
-      - 0
-      - 255
+        - 0
+        - 0
+        - 255
       xy_color:
-      - 0.136
-      - 0.04
+        - 0.136
+        - 0.04
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
-- id: '1636581915400'
-  name: '[Inst Cool] Purple'
+      state: "on"
+- id: "1636581915400"
+  name: "[Inst Cool] Purple"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 270
-      - 100
+        - 270
+        - 100
       rgb_color:
-      - 127
-      - 0
-      - 255
+        - 127
+        - 0
+        - 255
       xy_color:
-      - 0.217
-      - 0.077
+        - 0.217
+        - 0.077
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
-- id: '1636581963058'
-  name: '[Inst Cool] Green'
+      state: "on"
+- id: "1636581963058"
+  name: "[Inst Cool] Green"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 135
-      - 100
+        - 135
+        - 100
       rgb_color:
-      - 0
-      - 255
-      - 63
+        - 0
+        - 255
+        - 63
       xy_color:
-      - 0.17
-      - 0.703
+        - 0.17
+        - 0.703
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
-- id: '1636582068782'
-  name: '[Inst Cool] Yellow'
+      state: "on"
+- id: "1636582068782"
+  name: "[Inst Cool] Yellow"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 45
-      - 100
+        - 45
+        - 100
       rgb_color:
-      - 255
-      - 191
-      - 0
+        - 255
+        - 191
+        - 0
       xy_color:
-      - 0.527
-      - 0.447
+        - 0.527
+        - 0.447
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
-- id: '1636582119055'
-  name: '[Inst Cool] White'
+      state: "on"
+- id: "1636582119055"
+  name: "[Inst Cool] White"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: color_temp
       brightness: 254
       hs_color:
-      - 27.165
-      - 44.6
+        - 27.165
+        - 44.6
       rgb_color:
-      - 255
-      - 192
-      - 141
+        - 255
+        - 192
+        - 141
       xy_color:
-      - 0.454
-      - 0.373
+        - 0.454
+        - 0.373
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
       color_temp: 285
-      state: 'on'
-- id: '1651638072054'
-  name: '[Inst Cool] Red'
+      state: "on"
+- id: "1651638072054"
+  name: "[Inst Cool] Red"
   entities:
     light.mock_bathroom_light:
       min_mireds: 250
       max_mireds: 454
       effect_list:
-      - colorloop
+        - colorloop
       supported_color_modes:
-      - color_temp
-      - hs
+        - color_temp
+        - hs
       color_mode: hs
       brightness: 254
       hs_color:
-      - 360
-      - 100
+        - 360
+        - 100
       rgb_color:
-      - 255
-      - 0
-      - 0
+        - 255
+        - 0
+        - 0
       xy_color:
-      - 0.701
-      - 0.299
+        - 0.701
+        - 0.299
       off_brightness:
       friendly_name: Mock Bathroom Light
       supported_features: 63
-      state: 'on'
+      state: "on"

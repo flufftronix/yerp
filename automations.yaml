@@ -1,755 +1,786 @@
-- id: "01615254857237"
-  alias: "[Inst Cool] ZHA - Aqara Wireless Mini Switch"
-  description: ""
+- id: 01615254857237
+  alias: '[Inst Cool] ZHA - Aqara Wireless Mini Switch'
+  description: ''
   use_blueprint:
     path: SeanM/zha-aqara-wireless-mini-switch.yaml
     input:
       aqara_mini_switch: 285e2c27177ffcb993cb0df0dd6484c0
       button_single_press:
-        - service: script.button_press
-- id: "01630338394811"
-  alias: "[Inst Cool] Incrementation - Bulb Colors"
-  description: ""
+      - service: script.button_press
+- id: 01630338394811
+  alias: '[Inst Cool] Incrementation - Bulb Colors'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      id: Stage Change
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    id: Stage Change
   condition: []
   action:
-    - choose:
-        - conditions:
-            - condition: numeric_state
-              entity_id: counter.stage_inst_cool
-              below: "3"
-              above: "1"
-          sequence:
-            - service: scene.turn_on
-              data:
-                transition: 1
-              target:
-                entity_id: scene.inst_cool_blue
-        - conditions:
-            - condition: numeric_state
-              entity_id: counter.stage_inst_cool
-              above: "2"
-              below: "4"
-          sequence:
-            - service: scene.turn_on
-              data:
-                transition: 1
-              target:
-                entity_id: scene.inst_cool_green
-        - conditions:
-            - condition: numeric_state
-              entity_id: counter.stage_inst_cool
-              above: "4"
-              below: "6"
-          sequence:
-            - service: scene.turn_on
-              data:
-                transition: 1
-              target:
-                entity_id: scene.inst_cool_yellow
-        - conditions:
-            - condition: numeric_state
-              entity_id: counter.stage_inst_cool
-              above: "6"
-              below: "10"
-          sequence:
-            - service: scene.turn_on
-              target:
-                entity_id: scene.red
-      default: []
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        below: '3'
+        above: '1'
+      sequence:
+      - service: scene.turn_on
+        data:
+          transition: 1
+        target:
+          entity_id: scene.inst_cool_blue
+    - conditions:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '2'
+        below: '4'
+      sequence:
+      - service: scene.turn_on
+        data:
+          transition: 1
+        target:
+          entity_id: scene.inst_cool_green
+    - conditions:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '4'
+        below: '6'
+      sequence:
+      - service: scene.turn_on
+        data:
+          transition: 1
+        target:
+          entity_id: scene.inst_cool_yellow
+    - conditions:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '6'
+        below: '10'
+      sequence:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.red
+    default: []
   mode: restart
-- id: "01630552633352"
-  alias: "[Inst Cool] Physical Sensors to Booleans"
-  description: ""
+- id: '01630552633352'
+  alias: '[Inst Cool] Physical Sensors to Booleans'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: binary_sensor.ecolink_pir_red_led_any
-      id: Motion On
-      to: "on"
-      from: "off"
-    - type: opened
-      platform: device
-      device_id: c9015e5ee53bdd5295767c6fd594a7b3
-      entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
-      domain: binary_sensor
-      id: Door is opened
-    - platform: state
-      entity_id: binary_sensor.ecolink_pir_red_led_any
-      id: Motion Off
-      to: "off"
-      from: "on"
-    - type: not_opened
-      platform: device
-      device_id: c9015e5ee53bdd5295767c6fd594a7b3
-      entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
-      domain: binary_sensor
-      id: Door is closed
+  - platform: state
+    entity_id: binary_sensor.ecolink_pir_red_led_any
+    id: Motion On
+    to: 'on'
+    from: 'off'
+  - type: opened
+    platform: device
+    device_id: c9015e5ee53bdd5295767c6fd594a7b3
+    entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
+    domain: binary_sensor
+    id: Door is opened
+  - platform: state
+    entity_id: binary_sensor.ecolink_pir_red_led_any
+    id: Motion Off
+    to: 'off'
+    from: 'on'
+  - type: not_opened
+    platform: device
+    device_id: c9015e5ee53bdd5295767c6fd594a7b3
+    entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
+    domain: binary_sensor
+    id: Door is closed
   condition: []
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: Door is opened
-          sequence:
-            - service: input_boolean.turn_on
-              target:
-                entity_id: input_boolean.inst_cool_door
-              data: {}
-        - conditions:
-            - condition: trigger
-              id: Motion On
-          sequence:
-            - service: input_boolean.turn_on
-              target:
-                entity_id: input_boolean.inst_cool_motion
-              data: {}
-        - conditions:
-            - condition: trigger
-              id: Motion Off
-          sequence:
-            - service: input_boolean.turn_off
-              data: {}
-              target:
-                entity_id: input_boolean.inst_cool_motion
-        - conditions:
-            - condition: trigger
-              id: Door is closed
-          sequence:
-            - service: input_boolean.turn_off
-              data: {}
-              target:
-                entity_id: input_boolean.inst_cool_door
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Door is opened
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.inst_cool_door
+        data: {}
+    - conditions:
+      - condition: trigger
+        id: Motion On
+      sequence:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.inst_cool_motion
+        data: {}
+    - conditions:
+      - condition: trigger
+        id: Motion Off
+      sequence:
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_motion
+    - conditions:
+      - condition: trigger
+        id: Door is closed
+      sequence:
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_door
+    default: []
   mode: restart
-- id: "01630992468671"
-  alias: "[Inst Cool] Incrementation - Seconds"
-  description: ""
-  trigger:
-    - platform: state
-      entity_id: input_boolean.inst_cool_presence
-      id: Presence
-      to: "on"
+- id: 01630992468671
+  alias: '[Inst Cool] Incrementation - Seconds'
+  description: ''
+  trigger: []
   condition:
-    - condition: state
-      entity_id: input_boolean.inst_cool_yerp_on_off
-      state: "on"
+  - condition: state
+    entity_id: input_boolean.inst_cool_yerp_on_off
+    state: 'on'
   action:
-    - repeat:
-        while:
-          - condition: numeric_state
-            entity_id: counter.stage_inst_cool
-            above: "2"
-            below: "8"
-        sequence:
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 1
-              milliseconds: 0
-          - service: counter.increment
-            data: {}
-            target:
-              entity_id: counter.inst_cool_this_session_total_time
-          - condition: state
-            entity_id: input_boolean.inst_cool_motion
-            state: "off"
-          - service: counter.increment
-            data: {}
-            target:
-              entity_id:
-                - counter.inst_cool_stage_idle_time
+  - repeat:
+      while:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '2'
+        below: '8'
+      sequence:
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+      - service: counter.increment
+        data: {}
+        target:
+          entity_id: counter.inst_cool_this_session_total_time
+      - condition: state
+        entity_id: input_boolean.inst_cool_motion
+        state: 'off'
+      - service: counter.increment
+        data: {}
+        target:
+          entity_id:
+          - counter.inst_cool_stage_idle_time
   mode: single
-- id: "01636434600570"
-  alias: "[Inst Cool] Interrupts - Stage 3 Motion"
-  description: ""
+- id: '01636434600570'
+  alias: '[Inst Cool] Interrupts - Motion w/Presence'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: input_boolean.inst_cool_motion
-      to: "on"
-      id: Motion On
-    - platform: state
-      entity_id: input_boolean.inst_cool_motion
-      id: Motion Off
-      to: "off"
+  - platform: state
+    entity_id: input_boolean.inst_cool_motion
+    to: 'on'
+    id: Motion On
+  - platform: state
+    entity_id: input_boolean.inst_cool_motion
+    id: Motion Off
+    to: 'off'
   condition:
-    - condition: numeric_state
-      entity_id: counter.stage_inst_cool
-      above: "1"
-      below: "8"
+  - condition: numeric_state
+    entity_id: counter.stage_inst_cool
+    above: '1'
+    below: '8'
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: Motion On
-          sequence:
-            - service: light.turn_on
-              target:
-                entity_id:
-                  - light.mock_bathroom_light
-              data:
-                flash: short
-                brightness_pct: 100
-                color_name: purple
-            - service: light.turn_on
-              data:
-                color_name: green
-                transition: 1
-                flash: short
-              target:
-                entity_id: light.mock_bathroom_light
-            - service: input_boolean.turn_on
-              data: {}
-              target:
-                entity_id: input_boolean.inst_cool_presence
-            - service: automation.turn_on
-              target:
-                entity_id: automation.inst_cool_visit_seconds_incrementation
-              data: {}
-            - service: counter.configure
-              target:
-                entity_id: counter.stage_inst_cool
-              data:
-                value: 3
-            - service: counter.reset
-              data: {}
-              target:
-                entity_id: counter.inst_cool_stage_idle_time
-            - service: automation.trigger
-              data:
-                skip_condition: false
-              target:
-                entity_id: automation.inst_cool_visit_seconds_incrementation
-            - service: input_boolean.turn_on
-              data: {}
-              target:
-                entity_id: input_boolean.inst_cool_presence
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Motion On
+      sequence:
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_presence
+      - service: light.turn_on
+        target:
+          entity_id:
+          - light.mock_bathroom_light
+        data:
+          flash: short
+          brightness_pct: 100
+          color_name: purple
+      - service: light.turn_on
+        data:
+          color_name: green
+          transition: 1
+          flash: short
+        target:
+          entity_id: light.mock_bathroom_light
+      - service: counter.configure
+        target:
+          entity_id: counter.stage_inst_cool
+        data:
+          value: 3
+      - service: counter.reset
+        data: {}
+        target:
+          entity_id: counter.inst_cool_stage_idle_time
+    default: []
   mode: restart
-- id: "01636571529053"
-  alias: "[Inst Cool] Metrics - Record Session Data"
-  description: ""
+- id: 01636571529053
+  alias: '[Inst Cool] Metrics - Record Session Data'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: input_boolean.inst_cool_presence
-      to: "on"
-      id: Presence On
-      from: "off"
-    - platform: state
-      entity_id: input_boolean.inst_cool_presence
-      to: "off"
-      id: Presence Off
-      from: "on"
+  - platform: state
+    entity_id: input_boolean.inst_cool_presence
+    to: 'on'
+    id: Presence On
+    from: 'off'
+  - platform: state
+    entity_id: input_boolean.inst_cool_presence
+    to: 'off'
+    id: Presence Off
+    from: 'on'
   condition: []
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: Presence On
-          sequence:
-            - service: input_datetime.set_datetime
-              target:
-                entity_id: input_datetime.inst_cool_session_start_time
-              data:
-                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-        - conditions:
-            - condition: trigger
-              id: Presence Off
-            - condition: numeric_state
-              entity_id: counter.stage_inst_cool
-              above: "2"
-          sequence:
-            - service: counter.configure
-              data_template:
-                entity_id: counter.inst_cool_last_session_total_time
-                value: "{{ states('counter.inst_cool_this_session_total_time') | int }}"
-            - service: counter.configure
-              data_template:
-                entity_id: counter.inst_cool_last_session_final_stage
-                value: "{{ states('counter.stage_inst_cool') | int }}"
-            - service: input_datetime.set_datetime
-              target:
-                entity_id: input_datetime.inst_cool_session_end_time
-              data:
-                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Presence On
+      sequence:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.inst_cool_session_start_time
+        data:
+          datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+    - conditions:
+      - condition: trigger
+        id: Presence Off
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '2'
+      sequence:
+      - service: counter.configure
+        data_template:
+          entity_id: counter.inst_cool_last_session_total_time
+          value: '{{ states(''counter.inst_cool_this_session_total_time'') | int }}'
+      - service: counter.configure
+        data_template:
+          entity_id: counter.inst_cool_last_session_final_stage
+          value: '{{ states(''counter.stage_inst_cool'') | int }}'
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.inst_cool_session_end_time
+        data:
+          datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+    default: []
   mode: restart
-- id: "01636574483658"
-  alias: "[Inst Cool] Light Animation - Standby"
-  description: ""
+- id: 01636574483658
+  alias: '[Inst Cool] Light Animation - Standby'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      to: "2"
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    to: '2'
   condition: []
   action:
-    - repeat:
-        until:
-          - condition: not
-            conditions:
-              - condition: state
-                entity_id: input_number.inst_cool_stage_time
-                state: "2"
-        sequence:
-          - service: light.turn_on
-            target:
-              device_id: 7bed00ce60b78ec71813660796437932
-            data:
-              color_name: blue
-              brightness_pct: 1
-              transition: 3
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 1
-              milliseconds: 0
-          - service: light.turn_on
-            target:
-              entity_id: light.mock_bathroom_light_level_light_color_on_off
-            data:
-              transition: 3
-              brightness_pct: 100
+  - repeat:
+      until:
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: input_number.inst_cool_stage_time
+          state: '2'
+      sequence:
+      - service: light.turn_on
+        target:
+          device_id: 7bed00ce60b78ec71813660796437932
+        data:
+          color_name: blue
+          brightness_pct: 1
+          transition: 3
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+      - service: light.turn_on
+        target:
+          entity_id:
+          - light.mock_bathroom_light
+        data:
+          transition: 3
+          brightness_pct: 100
   mode: restart
-- id: "01636574657810"
-  alias: "[Inst Cool] Light Animation - Stage 1"
-  description: ""
+- id: 01636574657810
+  alias: '[Inst Cool] Light Animation - Stage 1'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      to: "1"
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    to: '1'
   condition: []
   action:
-    - repeat:
-        until:
-          - condition: not
-            conditions:
-              - condition: state
-                entity_id: input_number.inst_cool_stage_time
-                state: "1"
-        sequence:
-          - service: light.turn_on
-            target:
-              device_id: 7bed00ce60b78ec71813660796437932
-            data:
-              color_name: orange
-              brightness_pct: 1
-              transition: 3
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 1
-              milliseconds: 0
-          - service: light.turn_on
-            target:
-              entity_id: light.mock_bathroom_light_level_light_color_on_off
-            data:
-              transition: 3
-              brightness_pct: 100
+  - repeat:
+      until:
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: input_number.inst_cool_stage_time
+          state: '1'
+      sequence:
+      - service: light.turn_on
+        target:
+          device_id: 7bed00ce60b78ec71813660796437932
+        data:
+          color_name: orange
+          brightness_pct: 1
+          transition: 3
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+      - service: light.turn_on
+        target:
+          entity_id:
+          - light.mock_bathroom_light
+        data:
+          transition: 3
+          brightness_pct: 100
   mode: restart
-- id: "01642209450586"
-  alias: "[Inst Cool] Interrupts - Door Opens / Closes"
-  description: ""
+- id: 01642209450586
+  alias: '[Inst Cool] Interrupts - Door Opens / Closes'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: input_boolean.inst_cool_door
-      to: "on"
-      id: Door Open
-    - platform: state
-      entity_id: input_boolean.inst_cool_door
-      to: "off"
-      id: Door Close
+  - platform: state
+    entity_id: input_boolean.inst_cool_door
+    to: 'on'
+    id: Door Open
+  - platform: state
+    entity_id: input_boolean.inst_cool_door
+    to: 'off'
+    id: Door Close
   condition:
-    - condition: numeric_state
-      entity_id: counter.stage_inst_cool
-      above: "0"
+  - condition: numeric_state
+    entity_id: counter.stage_inst_cool
+    above: '0'
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: Door Open
-            - condition: state
-              entity_id: input_boolean.inst_cool_yerp_on_off
-              state: "on"
-          sequence:
-            - service: automation.trigger
-              target:
-                entity_id:
-                  - automation.inst_cool_metrics_record_session_start_end_times
-                  - automation.inst_cool_test_notification
-              data:
-                skip_condition: false
-            - service: script.inst_cool_reset
-              data: {}
-        - conditions:
-            - condition: trigger
-              id: Door Close
-            - condition: state
-              entity_id: input_boolean.inst_cool_yerp_on_off
-              state: "on"
-          sequence:
-            - service: counter.configure
-              target:
-                entity_id: counter.stage_inst_cool
-              data:
-                value: 1
-            - delay:
-                hours: 0
-                minutes: 0
-                seconds: 5
-                milliseconds: 0
-            - service: counter.increment
-              data: {}
-              target:
-                entity_id: counter.stage_inst_cool
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Door Open
+      - condition: state
+        entity_id: input_boolean.inst_cool_yerp_on_off
+        state: 'on'
+      sequence:
+      - service: scene.turn_on
+        data: {}
+        target:
+          entity_id: scene.inst_2_white
+      - service: automation.trigger
+        target:
+          entity_id:
+          - automation.inst_cool_metrics_record_session_data
+          - automation.inst_cool_notification_door_opened
+        data:
+          skip_condition: false
+      - service: script.inst_cool_reset
+        data: {}
+    - conditions:
+      - condition: trigger
+        id: Door Close
+      - condition: state
+        entity_id: input_boolean.inst_cool_yerp_on_off
+        state: 'on'
+      sequence:
+      - service: counter.configure
+        target:
+          entity_id: counter.stage_inst_cool
+        data:
+          value: 1
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - service: counter.increment
+        data: {}
+        target:
+          entity_id: counter.stage_inst_cool
+    default: []
   mode: restart
-- id: "01650487034964"
-  alias: "[Inst Cool] Test Notification"
-  description: ""
+- id: 01650487034964
+  alias: '[Inst Cool] Notification - Power Off'
+  description: ''
   trigger: []
   condition: []
   action:
-    - service: notify.mobile_app_fluffphone
-      data:
-        message:
-          Door was opened after {{ states('counter.inst_cool_this_session_total_time')
-          }} seconds. The longest gap between motion lasted for {{ states('counter.inst_cool_longest_idle_time_this_session')
-          }} seconds.
+  - condition: numeric_state
+    entity_id: counter.inst_cool_this_session_total_time
+    above: '10'
+  - service: notify.mobile_app_fluffphone
+    data:
+      message: Instance was turned off after a session lasting {{ states('counter.inst_cool_this_session_total_time')
+        }} seconds. The longest gap between motion lasted for {{ states('counter.inst_cool_longest_idle_time_this_session')
+        }} seconds.
   mode: single
-- id: "01651266094335"
-  alias: "[Inst Cool] On / Off"
-  description: ""
+- id: 01651266094335
+  alias: '[Inst Cool] On / Off'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: input_boolean.inst_cool_yerp_on_off
-      id: Turned Off
-      to: "off"
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      id: Stage 1
-      to: "1"
-    - platform: state
-      entity_id: input_boolean.inst_cool_yerp_on_off
-      id: Turned On
-      to: "on"
+  - platform: state
+    entity_id: input_boolean.inst_cool_yerp_on_off
+    id: Turned Off
+    to: 'off'
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    id: Stage 1
+    to: '1'
+  - platform: state
+    entity_id: input_boolean.inst_cool_yerp_on_off
+    id: Turned On
+    to: 'on'
   condition: []
   action:
-    - choose:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Turned On
+      sequence:
+      - service: counter.configure
+        target:
+          entity_id: counter.stage_inst_cool
+        data:
+          value: 1
+      - service: counter.reset
+        data: {}
+        target:
+          entity_id:
+          - counter.inst_cool_stage_idle_time
+          - counter.inst_cool_this_session_total_time
+          - counter.inst_cool_longest_idle_time_this_session
+    - conditions:
+      - condition: trigger
+        id: Turned Off
+      sequence:
+      - service: automation.turn_off
+        data: {}
+        target:
+          entity_id:
+          - automation.inst_cool_incrementation_seconds
+      - service: automation.trigger
+        data: {}
+        target:
+          entity_id:
+          - automation.inst_cool_test_notification
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_presence
+      - service: light.turn_off
+        target:
+          entity_id:
+          - light.mock_bathroom_light
+        data:
+          transition: 1
+      - service: counter.reset
+        data: {}
+        target:
+          entity_id:
+          - counter.inst_cool_stage_idle_time
+          - counter.inst_cool_this_session_total_time
+          - counter.inst_cool_longest_idle_time_this_session
+      - service: counter.configure
+        data:
+          value: 0
+        target:
+          entity_id: counter.stage_inst_cool
+    - conditions:
+      - condition: trigger
+        id: Stage 1
+      - condition: state
+        entity_id: input_boolean.inst_cool_door
+        state: 'off'
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 5
+      - condition: state
+        entity_id: input_boolean.inst_cool_yerp_on_off
+        state: 'on'
+      sequence:
+      - service: counter.reset
+        data: {}
+        target:
+          entity_id:
+          - counter.inst_cool_stage_idle_time
+          - counter.inst_cool_this_session_total_time
+          - counter.inst_cool_longest_idle_time_this_session
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.inst_cool_presence
+        data: {}
+      - choose:
         - conditions:
-            - condition: trigger
-              id: Turned On
+          - condition: state
+            entity_id: input_boolean.inst_cool_door
+            state: 'off'
+          sequence: []
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.inst_cool_door
+            state: 'on'
           sequence:
-            - service: counter.configure
-              target:
-                entity_id: counter.stage_inst_cool
-              data:
-                value: 1
-            - service: counter.reset
-              data: {}
-              target:
-                entity_id:
-                  - counter.inst_cool_stage_idle_time
-                  - counter.inst_cool_this_session_total_time
-                  - counter.inst_cool_longest_idle_time_this_session
-        - conditions:
-            - condition: trigger
-              id: Turned Off
-          sequence:
-            - service: automation.turn_off
-              data: {}
-              target:
-                entity_id: automation.inst_cool_visit_seconds_incrementation
-            - service: automation.trigger
-              data: {}
-              target:
-                entity_id:
-                  - automation.inst_cool_test_notification
-            - service: input_boolean.turn_off
-              data: {}
-              target:
-                entity_id: input_boolean.inst_cool_presence
-            - service: light.turn_off
-              target:
-                entity_id: light.mock_bathroom_light_level_light_color_on_off
-              data:
-                transition: 1
-            - service: counter.reset
-              data: {}
-              target:
-                entity_id:
-                  - counter.inst_cool_stage_idle_time
-                  - counter.inst_cool_this_session_total_time
-            - service: counter.configure
-              data:
-                value: 0
-              target:
-                entity_id: counter.stage_inst_cool
-        - conditions:
-            - condition: trigger
-              id: Stage 1
-            - condition: state
+          - wait_for_trigger:
+            - platform: state
               entity_id: input_boolean.inst_cool_door
-              state: "off"
+              to: 'off'
               for:
                 hours: 0
                 minutes: 0
                 seconds: 5
-            - condition: state
-              entity_id: input_boolean.inst_cool_yerp_on_off
-              state: "on"
-          sequence:
-            - service: counter.reset
-              data: {}
-              target:
-                entity_id:
-                  - counter.inst_cool_stage_idle_time
-                  - counter.inst_cool_this_session_total_time
-                  - counter.inst_cool_longest_idle_time_this_session
-            - service: input_boolean.turn_off
-              target:
-                entity_id: input_boolean.inst_cool_presence
-              data: {}
-            - choose:
-                - conditions:
-                    - condition: state
-                      entity_id: input_boolean.inst_cool_door
-                      state: "off"
-                  sequence: []
-                - conditions:
-                    - condition: state
-                      entity_id: input_boolean.inst_cool_door
-                      state: "on"
-                  sequence:
-                    - wait_for_trigger:
-                        - platform: state
-                          entity_id: input_boolean.inst_cool_door
-                          to: "off"
-                          for:
-                            hours: 0
-                            minutes: 0
-                            seconds: 5
-              default: []
-            - delay:
-                hours: 0
-                minutes: 0
-                seconds: 10
-                milliseconds: 0
-            - service: counter.increment
-              data: {}
-              target:
-                entity_id: counter.stage_inst_cool
-      default: []
+        default: []
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 10
+          milliseconds: 0
+      - service: counter.increment
+        data: {}
+        target:
+          entity_id: counter.stage_inst_cool
+    default: []
   mode: restart
-- id: "01651267021318"
-  alias: "[VP] Auto Door"
-  description: ""
+- id: 01651267021318
+  alias: '[VP] Auto Door'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      id: Stage 3
-      to: "3"
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    id: Stage 3
+    to: '3'
   condition:
-    - condition: state
-      entity_id: input_boolean.vp_ongoing_door
-      state: "on"
+  - condition: state
+    entity_id: input_boolean.vp_ongoing_door
+    state: 'on'
   action:
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: "{{ range(0, 600)|random|int }}"
-        milliseconds: 0
-    - service: input_boolean.turn_on
-      data: {}
-      target:
-        entity_id: input_boolean.inst_cool_door
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: "{{ range(0, 15)|random|int }}"
-        milliseconds: 0
-    - service: input_boolean.turn_off
-      data: {}
-      target:
-        entity_id: input_boolean.inst_cool_door
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: '{{ range(0, 600)|random|int }}'
+      milliseconds: 0
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.inst_cool_door
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: '{{ range(0, 15)|random|int }}'
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.inst_cool_door
   mode: single
-- id: "01651267712410"
-  alias: "[VP] On/Off"
-  description: ""
+- id: '01651267712410'
+  alias: '[VP] On/Off'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: input_boolean.vp_on_off
-      to: "on"
-      id: VP On
-    - platform: state
-      entity_id: input_boolean.vp_on_off
-      to: "off"
-      id: VP Off
+  - platform: state
+    entity_id: input_boolean.vp_on_off
+    to: 'on'
+    id: VP On
+  - platform: state
+    entity_id: input_boolean.vp_on_off
+    to: 'off'
+    id: VP Off
   condition: []
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: VP On
-          sequence:
-            - service: input_boolean.turn_on
-              data: {}
-              target:
-                entity_id:
-                  - input_boolean.vp_ongoing_door
-                  - input_boolean.vp_ongoing_motion
-        - conditions:
-            - condition: trigger
-              id: VP Off
-          sequence:
-            - service: input_boolean.turn_off
-              data: {}
-              target:
-                entity_id:
-                  - input_boolean.inst_cool_motion
-                  - input_boolean.vp_ongoing_motion
-                  - input_boolean.vp_ongoing_door
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: VP On
+      sequence:
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id:
+          - input_boolean.vp_ongoing_door
+          - input_boolean.vp_ongoing_motion
+    - conditions:
+      - condition: trigger
+        id: VP Off
+      sequence:
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id:
+          - input_boolean.inst_cool_motion
+          - input_boolean.vp_ongoing_motion
+          - input_boolean.vp_ongoing_door
+    default: []
   mode: restart
-- id: "01651268287614"
-  alias: "[Inst Cool] Incrementation - Stages"
-  description: ""
+- id: 01651271489428
+  alias: '[Inst Cool] Metrics - Longest Idle Time per Session'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.inst_cool_stage_idle_time
-      to: input_number.inst_cool_stage_length
+  - platform: state
+    entity_id: sensor.inst_cool_total_idle_time
   condition:
-    - condition: numeric_state
-      entity_id: counter.stage_inst_cool
-      above: "2"
-      below: "8"
+  - condition: numeric_state
+    entity_id: counter.inst_cool_longest_idle_time_this_session
+    below: sensor.inst_cool_total_idle_time
+  - condition: numeric_state
+    entity_id: counter.stage_inst_cool
+    above: '2'
+    below: '9'
   action:
-    - service: counter.increment
-      target:
-        entity_id: counter.stage_inst_cool
-      data: {}
-    - service: counter.reset
-      data: {}
-      target:
-        entity_id: counter.inst_cool_stage_idle_time
-  mode: restart
-- id: "01651271489428"
-  alias: "[Inst Cool] Metrics - Longest Idle Time per Session"
-  description: ""
-  trigger:
-    - platform: state
-      entity_id: sensor.inst_cool_total_idle_time
-  condition:
-    - condition: numeric_state
+  - service: counter.configure
+    data_template:
       entity_id: counter.inst_cool_longest_idle_time_this_session
-      below: sensor.inst_cool_total_idle_time
-    - condition: numeric_state
-      entity_id: counter.stage_inst_cool
-      above: "2"
-      below: "9"
-  action:
-    - service: counter.configure
-      data_template:
-        entity_id: counter.inst_cool_longest_idle_time_this_session
-        value: "{{ states('sensor.inst_cool_total_idle_time') | int(0) }}"
+      value: '{{ states(''sensor.inst_cool_total_idle_time'') | int(0) }}'
   mode: restart
-- id: "01651274273876"
-  alias: "[VP] Auto Motion"
-  description: ""
+- id: 01651274273876
+  alias: '[VP] Auto Motion'
+  description: ''
   trigger:
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      id: Stage 2
-      to: "2"
-      for:
-        hours: 0
-        minutes: 0
-        seconds: 0
-    - platform: state
-      entity_id: counter.stage_inst_cool
-      id: Stage 3
-      to: "3"
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    id: Stage 2
+    to: '2'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  - platform: state
+    entity_id: counter.stage_inst_cool
+    id: Stage 3
+    to: '3'
   condition:
-    - condition: state
-      entity_id: input_boolean.vp_ongoing_motion
-      state: "on"
+  - condition: state
+    entity_id: input_boolean.vp_ongoing_motion
+    state: 'on'
   action:
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: "{{ range(10, 45)|random|int }}"
-        milliseconds: 0
-    - service: input_boolean.turn_on
-      data: {}
-      target:
-        entity_id: input_boolean.inst_cool_motion
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: 5
-        milliseconds: 0
-    - service: input_boolean.turn_off
-      data: {}
-      target:
-        entity_id: input_boolean.inst_cool_motion
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: '{{ range(10, 45)|random|int }}'
+      milliseconds: 0
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.inst_cool_motion
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.inst_cool_motion
   mode: restart
-- id: "01651278090507"
-  alias: "[Inst Cool] Stage Count Incrementation"
-  description: ""
+- id: 01651278090507
+  alias: '[Inst Cool] Incrementation - Stage'
+  description: ''
   trigger:
-    - platform: numeric_state
-      entity_id: sensor.inst_cool_stage_percent
-      above: "99.99"
+  - platform: numeric_state
+    entity_id: sensor.inst_cool_stage_percent
+    above: '99.99'
   condition: []
   action:
-    - service: counter.increment
-      data: {}
-      target:
-        entity_id: counter.stage_inst_cool
-    - service: counter.reset
-      data: {}
-      target:
-        entity_id: counter.inst_cool_stage_idle_time
+  - service: counter.increment
+    data: {}
+    target:
+      entity_id: counter.stage_inst_cool
+  - service: counter.reset
+    data: {}
+    target:
+      entity_id: counter.inst_cool_stage_idle_time
   mode: restart
-- id: "01651873195722"
-  alias: "[Hub] YERP! South Server Status Notifications"
-  description: ""
+- id: 01651873195722
+  alias: '[Hub] YERP! South Server Status Notifications'
+  description: ''
   trigger:
-    - platform: state
-      entity_id:
-        - sensor.remote_connection_to_yerp_south
-      to: connected
-      id: Online
-      from: reconnecting
-    - platform: state
-      entity_id:
-        - sensor.remote_connection_to_yerp_south
-      to: reconnecting
-      id: Offline
-      from: connected
-      for:
-        hours: 0
-        minutes: 0
-        seconds: 0
+  - platform: state
+    entity_id:
+    - sensor.remote_connection_to_yerp_south
+    to: connected
+    id: Online
+    from: reconnecting
+  - platform: state
+    entity_id:
+    - sensor.remote_connection_to_yerp_south
+    to: reconnecting
+    id: Offline
+    from: connected
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
   condition: []
   action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: Online
-          sequence:
-            - service: notify.mobile_app_fluffphone
-              data:
-                title: YERP! South Status
-                message: Internet connection has been restored.
-        - conditions:
-            - condition: trigger
-              id: Offline
-          sequence:
-            - service: notify.mobile_app_fluffphone
-              data:
-                title: YERP! South Status
-                message: Internet connection has been lost.
-      default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Online
+      sequence:
+      - service: notify.mobile_app_fluffphone
+        data:
+          title: YERP! South Status
+          message: Internet connection has been restored.
+    - conditions:
+      - condition: trigger
+        id: Offline
+      sequence:
+      - service: notify.mobile_app_fluffphone
+        data:
+          title: YERP! South Status
+          message: Internet connection has been lost.
+    default: []
   mode: restart
+- id: '1651953738487'
+  alias: '[Inst Cool] Notification - Door Opened'
+  description: ''
+  trigger: []
+  condition:
+  - condition: numeric_state
+    entity_id: counter.inst_cool_this_session_total_time
+    above: '10'
+  action:
+  - service: notify.mobile_app_fluffphone
+    data:
+      message: Door was opened after {{ states('counter.inst_cool_this_session_total_time')
+        }} seconds. The longest gap between motion lasted for {{ states('counter.inst_cool_longest_idle_time_this_session')
+        }} seconds.
+  mode: single
+- id: '1651962364032'
+  alias: '[Inst Cool] Presence On/Off'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.inst_cool_presence
+    to: 'on'
+    id: Presence On
+  - platform: state
+    entity_id:
+    - input_boolean.inst_cool_presence
+    to: 'off'
+    id: Presence Off
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Presence On
+      sequence:
+      - service: counter.configure
+        data:
+          value: 3
+        target:
+          entity_id: counter.stage_inst_cool
+      - service: automation.turn_on
+        data: {}
+        target:
+          entity_id: automation.inst_cool_incrementation_seconds
+      - service: automation.trigger
+        data: {}
+        target:
+          entity_id: automation.inst_cool_incrementation_seconds
+    - conditions:
+      - condition: trigger
+        id: Presence Off
+      sequence:
+      - service: automation.turn_off
+        data: {}
+        target:
+          entity_id: automation.inst_cool_incrementation_seconds
+    default: []
+  mode: single

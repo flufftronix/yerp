@@ -37,7 +37,8 @@ inst_cool_reset:
       - service: automation.trigger
         data: {}
         target:
-          entity_id: automation.inst_cool_metrics_record_session_start_end_times
+          entity_id:
+          - automation.inst_cool_metrics_record_session_data
     default: []
   - service: counter.reset
     data: {}
