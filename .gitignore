@@ -12,9 +12,18 @@
 !scripts.yaml
 !sensor.yaml
 
-#whitelist yaml files in subdirectory integrations
-!integrations/
-!integrations/*.yaml
+#whitelist config files in subdirectory integrations
+!custom_components
+!custom_components/*
+!blueprints
+!blueprints/*
+!scripts
+!scripts/*
+!themes
+!themes/*
+!www
+!www/*
+www/*.tft
 
 #whitelist esphome subdirectory 
 # !esphome/
