@@ -42,15 +42,19 @@ def map_to_mdi_name(ha_type, state=None, device_class=None):
     if ha_type == "script":
         return "script-text"
     if ha_type == "switch":
-        return "flash"
+        return "light-switch"
     if ha_type == "number":
         return "ray-vertex"
     if ha_type == "light":
         return "lightbulb"
+    if ha_type == "fan":
+        return "fan"
     if ha_type == "input_boolean":
         return "check-circle-outline" if state == "on" else "close-circle-outline"
     if ha_type == "cover":
         return "window-open" if state == "open" else "window-closed"
+    if ha_type == "lock":
+        return "lock-open" if state == "unlocked" else "lock"
 
     elif ha_type == "sensor":
         if state == "on":

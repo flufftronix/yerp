@@ -66,8 +66,6 @@ class LuiController(object):
 
 
     def update_screensaver_brightness_state_callback(self, entity, attribute, old, new, kwargs):
-        x = type(self._config.get("sleepBrightness"))
-        y = self._config.get("sleepBrightness")
         if type(self._config.get("sleepBrightness")) == str:
             self.current_screensaver_brightness = self.calc_current_screensaver_brightness()
         self.update_screensaver_brightness(kwargs={"value": self.current_screensaver_brightness})
@@ -75,7 +73,7 @@ class LuiController(object):
     def update_screensaver_brightness(self, kwargs):
         bst = self._config.get("sleepTracking")
         brightness = 0
-        if bst is not None and self._ha_api.entity_exists(bst) and self._ha_api.get_entity(bst).state == "not_home":
+        if bst is not None and self._ha_api.entity_exists(bst) and self._ha_api.get_entity(bst).state in ["not_home", "off"]:
             brightness = 0
         else:
             self.current_screensaver_brightness = kwargs['value']
@@ -184,7 +182,10 @@ class LuiController(object):
                 self._ha_api.turn_off(entity_id)
 
         if button_type == "number-set":
-            self._ha_api.get_entity(entity_id).call_service("set_value", value=value)
+            if entity_id.startswith('fan'):
+                self._ha_api.get_entity(entity_id).call_service("set_percentage", percentage=value)
+            else:
+                self._ha_api.get_entity(entity_id).call_service("set_value", value=value)
 
         # for shutter / covers
         if button_type == "up":
@@ -209,6 +210,11 @@ class LuiController(object):
                 self._ha_api.get_entity(entity_id).call_service("turn_on")
             elif entity_id.startswith('light') or entity_id.startswith('switch') or entity_id.startswith('input_boolean'):
                 self._ha_api.get_entity(entity_id).call_service("toggle")
+            elif entity_id.startswith('lock'):
+                if self._ha_api.get_entity(entity_id).state == "locked":
+                    self._ha_api.get_entity(entity_id).call_service("unlock")
+                else:
+                    self._ha_api.get_entity(entity_id).call_service("lock")
             else:
                 self._ha_api.get_entity(entity_id).call_service("press")
 

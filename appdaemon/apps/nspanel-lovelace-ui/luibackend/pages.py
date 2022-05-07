@@ -24,7 +24,7 @@ class LuiPagesGen(object):
         attr = entity.attributes
         default_color_on  = rgb_dec565([253, 216, 53])
         default_color_off = rgb_dec565([68, 115, 158])
-        icon_color = default_color_on if entity.state == "on" else default_color_off
+        icon_color = default_color_on if entity.state in ["on", "unlocked"] else default_color_off
 
         if "rgb_color" in attr:
             color = attr.rgb_color
@@ -67,19 +67,35 @@ class LuiPagesGen(object):
         icon_cur        = get_icon_id_ha("weather", state=we.state)
         text_cur        = convert_temperature(we.attributes.temperature, unit)
 
+        forecastSkip = self._config._config_screensaver.raw_config.get(f"forecastSkip")+1
+        # check if the difference between the first 2 forecast items is less than 24h
+        difference = (dp.parse(we.attributes.forecast[forecastSkip]['datetime']) - dp.parse(we.attributes.forecast[0]['datetime']))
+        total_seconds = difference.total_seconds()
+        same_day = total_seconds < 86400
         weather_res = ""
         for i in range(1,5):
             wOF = self._config._config_screensaver.raw_config.get(f"weatherOverrideForecast{i}")
             if wOF is None:
-                up = we.attributes.forecast[i-1]['datetime']
-                #up   = datetime.datetime.fromisoformat(up)
-                up   = dp.parse(up)
-                if babel_spec is not None:
-                    up = babel.dates.format_date(up, "E", locale=self._locale)
+                fid = (i-1)*forecastSkip
+                if len(we.attributes.forecast) >= fid:
+                    up = we.attributes.forecast[fid]['datetime']
+                    up   = dp.parse(up).astimezone()
+                    if babel_spec is not None:
+                        if same_day:
+                            up = babel.dates.format_time(up, "H:mm", locale=self._locale)
+                        else:
+                            up = babel.dates.format_date(up, "E", locale=self._locale)
+                    else:
+                        if same_day:
+                            up = up.strftime('%H:%M')
+                        else:
+                            up = up.strftime('%a')
+                    icon = get_icon_id_ha("weather", state=we.attributes.forecast[fid]['condition'])
+                    down = convert_temperature(we.attributes.forecast[fid]['temperature'], unit)
                 else:
-                    up = up.strftime("%a")
-                icon = get_icon_id_ha("weather", state=we.attributes.forecast[i-1]['condition'])
-                down = convert_temperature(we.attributes.forecast[i-1]['temperature'], unit)
+                    up = ""
+                    icon = ""
+                    down = ""
             else:
                 self._ha_api.log(f"Forecast {i} is overriden with {wOF}")
                 icon = wOF.get("icon")
@@ -155,11 +171,24 @@ class LuiPagesGen(object):
             icon_id = get_icon_id_ha("script", overwrite=icon)
             text = get_translation(self._locale,"run")
             return f"~button~{entityId}~{icon_id}~17299~{name}~{text}"
+        if entityType == "lock":
+            icon_id = get_icon_id_ha("lock", state=entity.state, overwrite=icon)
+            icon_color = self.get_entity_color(entity)
+            text = get_translation(self._locale,"lock") if entity.state == "unlocked" else get_translation(self._locale,"unlock")
+            return f"~button~{entityId}~{icon_id}~{icon_color}~{name}~{text}"
         if entityType == "number":
             icon_id = get_icon_id_ha("number", overwrite=icon)
             min_v = entity.attributes.get("min", 0)
             max_v = entity.attributes.get("max", 100)
             return f"~number~{entityId}~{icon_id}~17299~{name}~{entity.state}|{min_v}|{max_v}"
+        if entityType == "fan":
+            icon_id = get_icon_id_ha("fan", overwrite=icon)
+            icon_color = self.get_entity_color(entity)
+            return f"~number~{entityId}~{icon_id}~{icon_color}~{name}~{entity.attributes.percentage}|0|100"
+        if entityType == "input_text":
+            icon_id = get_icon_id_ha("input_text", overwrite=icon)
+            value = entity.state
+            return f"~text~{entityId}~{icon_id}~17299~{name}~{value}"
         return f"~text~{entityId}~{get_icon_id('alert-circle-outline')}~17299~error~"
 
     def generate_entities_page(self, navigation, heading, items):
@@ -373,12 +402,16 @@ class LuiPagesGen(object):
                 color = "enable"
             else:
                 color = "disable"
-        self._send_mqtt_msg(f"entityUpdateDetail~{get_icon_id('lightbulb')}~{icon_color}~{switch_val}~{brightness}~{color_temp}~{color}")
+        color_translation      = "Color"
+        brightness_translation = get_translation(self._locale, "brightness")
+        color_temp_translation = get_translation(self._locale, "color_temperature")
+        self._send_mqtt_msg(f"entityUpdateDetail~{get_icon_id('lightbulb')}~{icon_color}~{switch_val}~{brightness}~{color_temp}~{color}~{color_translation}~{color_temp_translation}~{brightness_translation}")
     
     def generate_shutter_detail_page(self, entity):
         entity = self._ha_api.get_entity(entity)
         pos = int(entity.attributes.get("current_position", 50))
-        self._send_mqtt_msg(f"entityUpdateDetail~{pos}")
+        pos_translation = get_translation(self._locale, "position")
+        self._send_mqtt_msg(f"entityUpdateDetail~{pos}~~{pos_translation}")
 
     def send_message_page(self, id, heading, msg, b1, b2):
         self._send_mqtt_msg(f"pageType~popupNotify")

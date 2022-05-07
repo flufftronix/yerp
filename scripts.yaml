@@ -22,35 +22,35 @@ button_press:
     target:
       entity_id: automation.motion_finder_part_2
   mode: single
-inst_2_reset:
-  alias: '[Inst 2] Reset'
+inst_cool_reset:
+  alias: '[Inst Cool] Reset'
   sequence:
   - condition: numeric_state
-    entity_id: counter.stage_inst_2
+    entity_id: counter.stage_inst_cool
     above: '0'
   - choose:
     - conditions:
       - condition: numeric_state
-        entity_id: counter.stage_inst_2
+        entity_id: counter.stage_inst_cool
         above: '2'
       sequence:
       - service: automation.trigger
         data: {}
         target:
-          entity_id: automation.inst_2_metrics_record_session_start_end_times
+          entity_id: automation.inst_cool_metrics_record_session_start_end_times
     default: []
   - service: counter.reset
     data: {}
     target:
       entity_id:
-      - counter.inst_2_this_session_total_time
-      - counter.inst_2_stage_idle_time
-      - counter.inst_2_longest_idle_time_this_session
+      - counter.inst_cool_this_session_total_time
+      - counter.inst_cool_stage_idle_time
+      - counter.inst_cool_longest_idle_time_this_session
   - service: counter.configure
     data:
       value: 1
     target:
-      entity_id: counter.stage_inst_2
+      entity_id: counter.stage_inst_cool
   - delay:
       hours: 0
       minutes: 0
@@ -64,7 +64,7 @@ vp_door_open:
   - service: input_boolean.turn_on
     data: {}
     target:
-      entity_id: input_boolean.inst_2_door
+      entity_id: input_boolean.inst_cool_door
   mode: restart
 vp_stop_motion:
   alias: '[VP] Stop Motion'
@@ -84,7 +84,7 @@ vp_door_close:
   - service: input_boolean.turn_off
     data: {}
     target:
-      entity_id: input_boolean.inst_2_door
+      entity_id: input_boolean.inst_cool_door
   mode: restart
 vp_single_motion:
   alias: '[VP] Single Motion'
@@ -92,7 +92,7 @@ vp_single_motion:
   - service: input_boolean.turn_on
     data: {}
     target:
-      entity_id: input_boolean.inst_2_motion
+      entity_id: input_boolean.inst_cool_motion
   - delay:
       hours: 0
       minutes: 0
@@ -101,5 +101,5 @@ vp_single_motion:
   - service: input_boolean.turn_off
     data: {}
     target:
-      entity_id: input_boolean.inst_2_motion
+      entity_id: input_boolean.inst_cool_motion
   mode: single
