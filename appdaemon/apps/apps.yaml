@@ -1,0 +1,53 @@
+nspanel-1:
+  module: nspanel-lovelace-ui
+  class: NsPanelLovelaceUIManager
+  config:
+    panelRecvTopic: "tele/tasmota_7D3C7C/RESULT"
+    panelSendTopic: "cmnd/tasmota_7D3C7C/CustomSend"
+    updateMode: "manual"
+    locale: "en_US"
+    model: "us-p"
+    timeFormat: "%I:%M ?%p"
+    screensaver:
+      weatherUnit: fahrenheit
+      entity: weather.otto
+      weatherOverrideForecast1:
+        entity: input_boolean.inst_2_presence
+        name: Presence
+        icon: motion-sensor
+      weatherOverrideForecast2:
+        entity: input_boolean.inst_2_motion
+        name: Motion
+        icon: vibrate
+      weatherOverrideForecast3:
+        entity: input_boolean.inst_2_door
+        name: Door
+        icon: door
+      weatherOverrideForecast4:
+        entity: sensor.inst_2_session_percent
+        name: Session %
+        icon: timer
+    sleepTimeout: 20
+    sleepBrightness:
+      - time: "7:00:00"
+        value: 10
+      - time: "23:00:00"
+        value: 0
+    cards:
+      - type: cardEntities
+        entities:
+          - entity: input_boolean.inst_2_door
+          - entity: input_boolean.inst_2_motion
+          - entity: sensor.inst_2_session_percent
+          - entity: sensor.inst_2_stage_percent
+          - entity: sensor.inst_2_total_idle_time
+        title: Example Entities 1
+      - type: cardGrid
+        entities:
+          - entity: light.example_item
+          - entity: switch.example_item
+          - entity: delete
+          - entity: button.example_item
+          - entity: cover.example_item
+          - entity: delete # delete at the end is optional
+        title: Example Grid

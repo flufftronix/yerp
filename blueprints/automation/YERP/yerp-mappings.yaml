@@ -1,0 +1,112 @@
+blueprint:
+  name: YERP! - Mappings
+  description: "
+# YERP!
+## Your Emergency Response Platform
+
+  ---
+
+[YERP!](https://yerp.io) is the first open source [harm reduction](https://harmreduction.org/about-us/principles-of-harm-reduction/) framework for [Home Assistant](https://home-assistant.io), designed to allow for early detection and response to potential medical emergencies (such as accidental drug overdose, cardiac arrest, or other types of syncope/fainting) in single occupancy rooms.
+
+For instructions please see the documentation, and for help please visit the [YERP! Home Assistant Forum thread](). Collaborators and contributors welcome :)
+  "
+  domain: automation
+  input:
+    # instance_id:
+    #   name: Instance ID
+    #   description: How you identify this YERP! instance.
+    #   default: "YERP01"
+    door_device:
+      name: Door Device
+      description: .
+      selector:
+        entity:
+          domain: binary_sensor
+    door_boolean:
+      name: Door Alias
+      description: Boolean toggle for door
+      selector:
+        entity:
+          domain: input_boolean       
+    motion_device:
+      name: Motion Device
+      description: .
+      selector:
+        entity:
+          domain: binary_sensor
+    motion_boolean:
+      name: Motion Alias
+      description: Boolean toggle for motion
+      selector:
+        entity:
+          domain: input_boolean
+    session_onoff1:
+      name: System On/Off Alias
+      description: Boolean toggle for system on/off
+      selector:
+        entity:
+          domain: input_boolean
+    stage_counter:
+      name: Stage Counter
+      description: This instance's stage counter
+      selector:
+        entity:
+          domain: counter
+
+trigger:
+- platform: state
+  entity_id: !input motion_device
+  id: Motion On
+  to: 'on'
+  from: 'off'
+- platform: state
+  entity_id: !input motion_device
+  id: Motion Off
+  to: 'off'
+  from: 'on'
+- platform: state
+  entity_id: !input door_device
+  to: 'on'
+  from: 'off'
+  id: Door is opened
+- platform: state
+  entity_id: !input door_device
+  id: Door is closed
+
+condition:
+  - condition: numeric_state
+    entity_id: !input stage_counter
+    above: '1'
+    below: '8'      
+action:
+  - choose:
+    - conditions:
+        - condition: trigger
+          id: Door is opened
+      sequence:
+        - service: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.inst_2_door
+    - conditions:
+        - condition: trigger
+          id: Door is closed
+      sequence:
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.inst_2_door
+    - conditions:
+        - condition: trigger
+          id: Motion On
+      sequence:
+        - service: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.inst_2_motion
+    - conditions:
+        - condition: trigger
+          id: Motion Off
+      sequence:
+        - service: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.inst_2_motion
+    default: []
+mode: restart      

@@ -13,17 +13,18 @@
 !sensor.yaml
 
 #whitelist config files in subdirectory integrations
+!appdaemon/
+!appdaemon/**
 !custom_components
-!custom_components/*
+!custom_components/**
 !blueprints
-!blueprints/*
+!blueprints/**
 !scripts
-!scripts/*
+!scripts/**
 !themes
-!themes/*
+!themes/**
 !www
-!www/*
-www/*.tft
+!www/**
 
 #whitelist esphome subdirectory 
 # !esphome/
@@ -34,9 +35,7 @@ www/*.tft
 !README.md
 !LICENSE.md
 !documentation/
-!documentation/*.*
-!documentation/images
-!documentation/images/*.*
+!documentation/**
 
 #whitelist dashboard directory and files
 !dashboard
