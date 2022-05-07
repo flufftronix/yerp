@@ -1,0 +1,4 @@
+binary_sensor.lumi_lumi_sensor_magnet_aq2_on_off:
+  device_class: door
+binary_sensor.z_wave_pir_motion_sensor_any:
+  device_class: motion

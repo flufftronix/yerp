@@ -1,0 +1,105 @@
+stopwatch_reset:
+  alias: Monitoring Stopwatch Reset
+  sequence:
+  - service: counter.reset
+    data: {}
+    entity_id: counter.monitoring_time
+  mode: single
+motion_stopwatch_reset:
+  alias: Motion Stopwatch Reset
+  sequence:
+  - service: counter.reset
+    data: {}
+    entity_id: counter.motion_time_total_seconds
+  mode: restart
+button_press:
+  alias: Button Press
+  sequence:
+  - service: automation.trigger
+    target:
+      entity_id: automation.presence_motion_is_detected
+  - service: automation.trigger
+    target:
+      entity_id: automation.motion_finder_part_2
+  mode: single
+inst_2_reset:
+  alias: '[Inst 2] Reset'
+  sequence:
+  - condition: numeric_state
+    entity_id: counter.stage_inst_2
+    above: '0'
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_2
+        above: '2'
+      sequence:
+      - service: automation.trigger
+        data: {}
+        target:
+          entity_id: automation.inst_2_metrics_record_session_start_end_times
+    default: []
+  - service: counter.reset
+    data: {}
+    target:
+      entity_id:
+      - counter.inst_2_this_session_total_time
+      - counter.inst_2_stage_idle_time
+      - counter.inst_2_longest_idle_time_this_session
+  - service: counter.configure
+    data:
+      value: 1
+    target:
+      entity_id: counter.stage_inst_2
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  mode: single
+  icon: mdi:restart
+vp_door_open:
+  alias: '[VP] Door Open'
+  sequence:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.inst_2_door
+  mode: restart
+vp_stop_motion:
+  alias: '[VP] Stop Motion'
+  sequence:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.vp_ongoing_motion
+  - service: script.turn_off
+    data: {}
+    target:
+      entity_id: script.vp_door_close
+  mode: restart
+vp_door_close:
+  alias: '[VP] Door Close'
+  sequence:
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.inst_2_door
+  mode: restart
+vp_single_motion:
+  alias: '[VP] Single Motion'
+  sequence:
+  - service: input_boolean.turn_on
+    data: {}
+    target:
+      entity_id: input_boolean.inst_2_motion
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    data: {}
+    target:
+      entity_id: input_boolean.inst_2_motion
+  mode: single
