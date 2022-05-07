@@ -1,5 +1,5 @@
 - id: "01615254857237"
-  alias: ZHA - Aqara Wireless Mini Switch
+  alias: "[Inst Cool] ZHA - Aqara Wireless Mini Switch"
   description: ""
   use_blueprint:
     path: SeanM/zha-aqara-wireless-mini-switch.yaml
@@ -348,18 +348,6 @@
               transition: 3
               brightness_pct: 100
   mode: restart
-- id: "01636679221778"
-  alias: YERP! - Mappings
-  description: ""
-  use_blueprint:
-    path: YERP/yerp-mappings.yaml
-    input:
-      door_device: binary_sensor.door_window_sensor_access_control_window_door_is_open
-      door_boolean: input_boolean.inst_cool_door
-      motion_device: binary_sensor.ecolink_pir_red_led_any
-      motion_boolean: input_boolean.inst_cool_motion
-      session_onoff1: input_boolean.inst_cool_yerp_on_off
-      stage_counter: counter.stage_inst_cool
 - id: "01642209450586"
   alias: "[Inst Cool] Interrupts - Door Opens / Closes"
   description: ""
@@ -725,18 +713,18 @@
         entity_id: counter.inst_cool_stage_idle_time
   mode: restart
 - id: "01651873195722"
-  alias: YERP! South Server Status Notifications
+  alias: "[Hub] YERP! South Server Status Notifications"
   description: ""
   trigger:
     - platform: state
       entity_id:
-        - !secret south
+        - sensor.remote_connection_to_yerp_south
       to: connected
       id: Online
       from: reconnecting
     - platform: state
       entity_id:
-        - !secret south
+        - sensor.remote_connection_to_yerp_south
       to: reconnecting
       id: Offline
       from: connected
