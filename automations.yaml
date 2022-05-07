@@ -946,13 +946,13 @@
   trigger:
   - platform: state
     entity_id:
-    - sensor.remote_connection_to_yerp_south_duckdns_org_443
+    - !secret south
     to: connected
     id: Online
     from: reconnecting
   - platform: state
     entity_id:
-    - sensor.remote_connection_to_yerp_south_duckdns_org_443
+    - !secret south
     to: reconnecting
     id: Offline
     from: connected

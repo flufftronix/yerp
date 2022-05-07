@@ -1,32 +1,22 @@
-# Example .gitignore file for your config dir.
-# An * ensures that everything will be ignored.
+#example .gitignore
+
+#ignore everything
 *
-# You can whitelist files/folders with !, these will not be ignored.
-!*.yaml
-!.gitignore
-!*.md
 
-# Ignore folders.
-.storage
-.cloud
-.google.token
-.ssh
-appdaemon
-esphome
-ssh
-tts
+#whitelist main configuration
+!configuration.yaml
+!automations.yaml
+!customize.yaml
+!groups.yaml
+!scenes.yaml
+!scripts.yaml
+!sensor.yaml
 
-# Ignore file formats
-*.tft
-*.log
-home-assistant.log.*
-*.db
+#whitelist yaml files in subdirectory integrations
+!integrations/
+!integrations/*.yaml
 
-# Ensure these YAML files are ignored, otherwise your secret data/credentials will leak.
-ip_bans.yaml
-secrets.yaml
-known_devices.yaml
-
-# Ignore files
-zwcfg*.xml
-zwscene.xml
+#whitelist esphome subdirectory 
+# !esphome/
+# !esphome/*.yaml
+# !esphome/*.h
