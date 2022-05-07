@@ -24,3 +24,5 @@
 #whitelist documentation
 !README.md
 !LICENSE.md
+!documentation
+!documentation/*.*
