@@ -6,7 +6,7 @@ It's also fully modular system, built on top of <a href="https://home-assistant.
 
 ![YERP Widget](documentation/images/yerp-widget.png)
 
-The files in this repo are the contents of the config folder from the Home Assistant installation YERP! is being built on. The focus so far has been building out a usable and reliable setup, before bundling everything down into an integration.
+The files in this repo are the contents of the config folder from the Home Assistant installation YERP! is being built on. The focus so far has been building out a usable and reliable setup, before bundling everything down (read: before learning how to bundle everything down!) into integrations, widgets and blueprints.
 
 ## Hardware tested & used so far
 
