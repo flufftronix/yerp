@@ -28,3 +28,7 @@
 !documentation/*.*
 !documentation/images
 !documentation/images/*.*
+
+#whitelist dashboard directory and files
+!dashboard
+!dashboard/*.yaml
