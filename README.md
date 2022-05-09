@@ -12,3 +12,7 @@ The files in this repo are the contents of the config folder from the Home Assis
 ### [YERP!... WTF? Some info on what this is and why it's being developed](documentation/wtf.md)
 ### [How to install and configure a YERP! installation](documentation/installation.md)
 ### [Hardware tested & used so far](documentation/hardware.md)
+
+### YERP!'s Smart Spotting diagrammed and explained (coming soon)
+### Project Roadmap (coming soon)
+### How to get involved and support (coming soon - in the mean time [please contact via email!](mailto:hello@cool.industries))
