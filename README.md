@@ -14,6 +14,6 @@ The files in this repo are the contents of the config folder from the Home Assis
 #### - [Hardware tested & used so far](documentation/hardware.md)
 
 #### - Coming Soon:
-- YERP!'s Smart Spotting diagrammed and explained
+- YERP!'s Smart Spotting diagrammed and explained, compared/contrasted with other frameworks
 - Project Roadmap
 -  How to get involved and support (in the mean time [please contact via email!](mailto:hello@cool.industries))
