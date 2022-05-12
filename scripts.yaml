@@ -55,7 +55,7 @@ inst_cool_reset:
   - delay:
       hours: 0
       minutes: 0
-      seconds: 5
+      seconds: 1
       milliseconds: 0
   mode: single
   icon: mdi:restart

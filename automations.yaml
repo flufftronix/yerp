@@ -8,7 +8,7 @@
       button_single_press:
       - service: script.button_press
 - id: 01630338394811
-  alias: '[Inst Cool] Incrementation - Bulb Colors'
+  alias: '[Inst Cool] Light Animation- Bulb Colors'
   description: ''
   trigger:
   - platform: state
@@ -23,16 +23,28 @@
         below: '3'
         above: '1'
       sequence:
-      - service: scene.turn_on
-        data:
-          transition: 1
-        target:
-          entity_id: scene.inst_cool_blue
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.inst_cool_door
+            state: 'on'
+          sequence:
+          - service: scene.turn_on
+            data:
+              transition: 1
+            target:
+              entity_id: scene.inst_cool_white
+        default:
+        - service: scene.turn_on
+          data:
+            transition: 1
+          target:
+            entity_id: scene.inst_cool_blue
     - conditions:
       - condition: numeric_state
         entity_id: counter.stage_inst_cool
         above: '2'
-        below: '4'
+        below: '6'
       sequence:
       - service: scene.turn_on
         data:
@@ -42,8 +54,8 @@
     - conditions:
       - condition: numeric_state
         entity_id: counter.stage_inst_cool
-        above: '4'
-        below: '6'
+        above: '5'
+        below: '7'
       sequence:
       - service: scene.turn_on
         data:
@@ -54,11 +66,31 @@
       - condition: numeric_state
         entity_id: counter.stage_inst_cool
         above: '6'
-        below: '10'
+        below: '7'
       sequence:
       - service: scene.turn_on
         target:
           entity_id: scene.red
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: counter.stage_inst_cool
+        state: '7'
+      sequence:
+      - service: scene.turn_on
+        data: {}
+        target:
+          entity_id:
+          - scene.red
+    - conditions:
+      - condition: state
+        entity_id: counter.stage_inst_cool
+        state: '8'
+      sequence:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.inst_cool_white
+        metadata: {}
     default: []
   mode: restart
 - id: '01630552633352'
@@ -134,29 +166,39 @@
     state: 'on'
   action:
   - repeat:
-      while:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '2'
-        below: '8'
+      until:
+      - condition: state
+        entity_id: input_boolean.inst_cool_presence
+        state: 'off'
       sequence:
       - delay:
           hours: 0
           minutes: 0
           seconds: 1
           milliseconds: 0
-      - service: counter.increment
-        data: {}
-        target:
-          entity_id: counter.inst_cool_this_session_total_time
-      - condition: state
-        entity_id: input_boolean.inst_cool_motion
-        state: 'off'
-      - service: counter.increment
-        data: {}
-        target:
-          entity_id:
-          - counter.inst_cool_stage_idle_time
+      - if:
+        - condition: state
+          entity_id: input_boolean.inst_cool_presence
+          state: 'on'
+        - condition: numeric_state
+          entity_id: counter.stage_inst_cool
+          above: '2'
+          below: '8'
+        then:
+        - service: counter.increment
+          data: {}
+          target:
+            entity_id: counter.inst_cool_this_session_total_time
+        - if:
+          - condition: state
+            entity_id: input_boolean.inst_cool_motion
+            state: 'off'
+          then:
+          - service: counter.increment
+            data: {}
+            target:
+              entity_id:
+              - counter.inst_cool_stage_idle_time
   mode: single
 - id: '01636434600570'
   alias: '[Inst Cool] Interrupts - Motion w/Presence'
@@ -315,15 +357,15 @@
       sequence:
       - service: light.turn_on
         target:
-          device_id: 7bed00ce60b78ec71813660796437932
+          entity_id: light.mock_bathroom_light
         data:
-          color_name: orange
+          color_name: purple
           brightness_pct: 1
           transition: 3
       - delay:
           hours: 0
           minutes: 0
-          seconds: 1
+          seconds: 3
           milliseconds: 0
       - service: light.turn_on
         target:
@@ -332,6 +374,38 @@
         data:
           transition: 3
           brightness_pct: 100
+      - if:
+        - condition: state
+          entity_id: input_boolean.inst_cool_door
+          state: 'on'
+        then:
+        - service: scene.turn_on
+          target:
+            entity_id: scene.inst_cool_white
+          metadata: {}
+        - wait_for_trigger:
+          - platform: state
+            entity_id:
+            - input_boolean.inst_cool_door
+            to: 'off'
+          continue_on_timeout: false
+        else:
+        - service: scene.turn_on
+          target:
+            entity_id: scene.inst_2_purple
+          metadata: {}
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 1
+            milliseconds: 0
+        - service: light.turn_on
+          target:
+            entity_id: light.mock_bathroom_light
+          data:
+            color_name: purple
+            brightness_pct: 1
+            transition: 1
   mode: restart
 - id: 01642209450586
   alias: '[Inst Cool] Interrupts - Door Opens / Closes'
@@ -361,14 +435,19 @@
       - service: scene.turn_on
         data: {}
         target:
-          entity_id: scene.inst_2_white
+          entity_id:
+          - scene.inst_cool_white
       - service: automation.trigger
         target:
           entity_id:
           - automation.inst_cool_metrics_record_session_data
-          - automation.inst_cool_notification_door_opened
         data:
           skip_condition: false
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
       - service: script.inst_cool_reset
         data: {}
     - conditions:
@@ -392,23 +471,20 @@
         data: {}
         target:
           entity_id: counter.stage_inst_cool
+      - service: automation.turn_on
+        data: {}
+        target:
+          entity_id: automation.inst_cool_incrementation_seconds
+      - service: automation.trigger
+        data: {}
+        target:
+          entity_id: automation.inst_cool_incrementation_seconds
+      - service: scene.turn_on
+        target:
+          entity_id: scene.inst_2_purple
+        metadata: {}
     default: []
   mode: restart
-- id: 01650487034964
-  alias: '[Inst Cool] Notification - Power Off'
-  description: ''
-  trigger: []
-  condition: []
-  action:
-  - condition: numeric_state
-    entity_id: counter.inst_cool_this_session_total_time
-    above: '10'
-  - service: notify.mobile_app_fluffphone
-    data:
-      message: Instance was turned off after a session lasting {{ states('counter.inst_cool_this_session_total_time')
-        }} seconds. The longest gap between motion lasted for {{ states('counter.inst_cool_longest_idle_time_this_session')
-        }} seconds.
-  mode: single
 - id: 01651266094335
   alias: '[Inst Cool] On / Off'
   description: ''
@@ -726,19 +802,124 @@
     default: []
   mode: restart
 - id: '1651953738487'
-  alias: '[Inst Cool] Notification - Door Opened'
+  alias: '[Inst Cool] Session End Notification'
   description: ''
-  trigger: []
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.inst_cool_yerp_on_off
+    id: 'Off'
+    to: 'off'
+  - platform: state
+    entity_id:
+    - counter.stage_inst_cool
+    to: '8'
+    id: Alarm
+  - platform: state
+    entity_id:
+    - input_boolean.inst_cool_door
+    to: 'on'
+    id: Door Opened
   condition:
   - condition: numeric_state
     entity_id: counter.inst_cool_this_session_total_time
     above: '10'
   action:
-  - service: notify.mobile_app_fluffphone
-    data:
-      message: Door was opened after {{ states('counter.inst_cool_this_session_total_time')
-        }} seconds. The longest gap between motion lasted for {{ states('counter.inst_cool_longest_idle_time_this_session')
-        }} seconds.
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: 'Off'
+      sequence:
+      - service: input_text.set_value
+        data:
+          value: System was turned off
+        target:
+          entity_id: input_text.inst_cool_last_session_end
+    - conditions:
+      - condition: trigger
+        id: Alarm
+      sequence:
+      - service: input_text.set_value
+        data:
+          value: Alarm was triggered
+        target:
+          entity_id: input_text.inst_cool_last_session_end
+    - conditions:
+      - condition: trigger
+        id: Door Opened
+      sequence:
+      - service: input_text.set_value
+        data:
+          value: Door was opened
+        target:
+          entity_id: input_text.inst_cool_last_session_end
+    default: []
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Alarm
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: input_select.inst_cool_config_session_end_notifications
+          state: None
+      sequence:
+      - service: notify.mobile_app_fluffphone
+        data:
+          message: '{{states(''input_text.inst_cool_last_session_end'') }} after {%
+            set totaltime=states(''counter.inst_cool_this_session_total_time'') |
+            int(0) %}{% if totaltime >= 1 and totaltime <= 60 %}{{states(''counter.inst_cool_this_session_total_time'')
+            }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_this_session_total_time'')
+            | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
+            totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_this_session_total_time'')
+            | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% else
+            %}{{states(''counter.inst_cool_this_session_total_time'') | int(0) | timestamp_custom(''%-H:%-M:%S'',
+            false) }}{% endif %}. The longest gap between motion lasted for {% set
+            totaltime=states(''counter.inst_cool_longest_idle_time_this_session'')
+            | int(0) %}{% if totaltime >= 0 and totaltime <= 2 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+            }} second{% elif totaltime >= 2 and totaltime <= 60 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+            }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+            | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
+            totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+            | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% endif
+            %}.'
+          data:
+            presentation_options:
+            - alert
+            - badge
+            push:
+              sound:
+                name: default
+                critical: 1
+                volume: 1
+    default:
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: input_select.inst_cool_config_session_end_notifications
+        state: None
+    - service: notify.mobile_app_fluffphone
+      data:
+        message: '{{states(''input_text.inst_cool_last_session_end'') }} after {%
+          set totaltime=states(''counter.inst_cool_this_session_total_time'') | int(0)
+          %}{% if totaltime >= 1 and totaltime <= 60 %}{{states(''counter.inst_cool_this_session_total_time'')
+          }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_this_session_total_time'')
+          | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
+          totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_this_session_total_time'')
+          | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% else
+          %}{{states(''counter.inst_cool_this_session_total_time'') | int(0) | timestamp_custom(''%-H:%-M:%S'',
+          false) }}{% endif %}. The longest gap between motion lasted for {% set totaltime=states(''counter.inst_cool_longest_idle_time_this_session'')
+          | int(0) %}{% if totaltime >= 0 and totaltime <= 2 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+          }} second{% elif totaltime >= 2 and totaltime <= 60 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+          }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+          | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
+          totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
+          | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% endif
+          %}.'
+        data:
+          presentation_options:
+          - alert
+          - badge
   mode: single
 - id: '1651962364032'
   alias: '[Inst Cool] Presence On/Off'
@@ -784,3 +965,43 @@
           entity_id: automation.inst_cool_incrementation_seconds
     default: []
   mode: single
+- id: '1652320373903'
+  alias: '[Inst Cool] Light Animation - Warning Pulses'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - counter.stage_inst_cool
+    to: '6'
+  condition: []
+  action:
+  - repeat:
+      while:
+      - condition: numeric_state
+        entity_id: counter.stage_inst_cool
+        above: '5'
+        below: '8'
+      sequence:
+      - service: light.turn_on
+        data:
+          brightness_pct: 1
+          transition: 1
+        target:
+          entity_id: light.mock_bathroom_light
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+      - service: light.turn_on
+        data:
+          brightness_pct: 100
+          transition: 1
+        target:
+          entity_id: light.mock_bathroom_light
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 1
+          milliseconds: 0
+  mode: restart
