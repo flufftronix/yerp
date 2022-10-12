@@ -1,0 +1,87 @@
+blueprint:
+  name: YERP! - Hardware Configurator
+  description: '<h2><strong>YERP!</strong> Your Emergency Response Platform</h2><hr><p><a href="https://yerp.io">YERP!</a> is the first modular, open source <a href="https://harmreduction.org/about-us/principles-of-harm-reduction/">harm reduction</a> framework for automated spotting in single-occupancy rooms. For instructions please check out our <a href="#">documentation</a>, and for help please visit the <a href="#">YERP! Home Assistant Community Forum thread</a> or the <a href="">Cool Industries Discord server</a>.</p>YERP! is proudly open source. Collaborators and contributors welcome :)</p>'
+  domain: automation
+  input:
+    activity_state:
+      name: Activity Entity/Entities
+      description: The entity or entities you're using to sense activity in this area.
+      default: []
+      selector:
+        entity:
+    activity_boolean:
+      name: Activity Boolean
+      description: Should be something like `input_boolean.yerp_(area name)_session_active`
+      default: []
+      selector:
+        entity:
+    gate_state:
+      name: Gate Sensor
+      description: Assign a gate sensor to this area.
+      default: []
+      selector:
+        entity:
+    gate_boolean:
+      name: Gate Sensor Boolean
+      description: Should be something like `input_boolean.yerp_(area name)_gate_status`
+      default: []
+      selector:
+        entity:
+mode: single
+trigger:
+  - platform: state
+    entity_id:
+      - !input activity_state
+    id: Activity Entity State Changes
+  - platform: state
+    entity_id:
+      - !input gate_state
+    id: Gate Entity State Changes
+condition: []
+action:
+  - if:
+      - condition: trigger
+        id: Activity Entity State Changes
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input activity_state
+                state: "on"
+            sequence:
+              - service: input_boolean.turn_on
+                data: {}
+                target:
+                  entity_id: !input activity_boolean
+          - conditions:
+              - condition: state
+                entity_id: !input activity_state
+                state: "off"
+            sequence:
+              - service: input_boolean.turn_off
+                data: {}
+                target:
+                  entity_id: !input activity_boolean
+  - if:
+      - condition: trigger
+        id: Gate Entity State Changes
+    then:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: !input gate_state
+                state: "on"
+            sequence:
+              - service: input_boolean.turn_on
+                data: {}
+                target:
+                  entity_id: !input gate_boolean
+          - conditions:
+              - condition: state
+                entity_id: !input gate_state
+                state: "off"
+            sequence:
+              - service: input_boolean.turn_on
+                data: {}
+                target:
+                  entity_id: !input gate_boolean

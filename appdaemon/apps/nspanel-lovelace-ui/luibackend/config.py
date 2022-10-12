@@ -1,14 +1,22 @@
+import uuid
+import apis
+
 class Entity(object):
     def __init__(self, entity_input_config):
+        self.uuid = f"uuid.{uuid.uuid4().hex}"
         if type(entity_input_config) is not dict:
             #self._ha_api.log("Config error, not a dict check your entity configs")
             self.entityId = "error"
-            self.nameOverride = None
-            self.iconOverride = None
         else:
-            self.entityId = entity_input_config.get("entity", "unknown")
-            self.nameOverride = entity_input_config.get("name")
-            self.iconOverride = entity_input_config.get("icon")
+            self.entityId  = entity_input_config.get("entity", "unknown")
+        self.nameOverride  = entity_input_config.get("name")
+        self.iconOverride  = entity_input_config.get("icon")
+        self.colorOverride = entity_input_config.get("color")
+        self.status        = entity_input_config.get("status")
+        self.condState     = entity_input_config.get("state")
+        self.condStateNot  = entity_input_config.get("state_not")
+        self.assumedState  = entity_input_config.get("assumed_state", False)
+        self.data  = entity_input_config.get("data", {})
 
 class Card(object):
     def __init__(self, card_input_config, pos=None):
@@ -28,20 +36,35 @@ class Card(object):
         self.id = f"{self.cardType}_{self.key}".replace(".","_").replace("~","_").replace(" ","_")
         #self._ha_api.log(f"Created Card {self.cardType} with pos {pos} and id {self.id}")
     
-    def get_entity_list(self):
+    def get_entity_names(self):
         entityIds = []
         if self.entity is not None:
             entityIds.append(self.entity.entityId)
+            if self.entity.status is not None:
+                entityIds.append(self.entity.status)
         else:
             for e in self.entities:
                 entityIds.append(e.entityId)
+                if e.status is not None:
+                    entityIds.append(e.status)
+
         # additional keys to check
-        add_ent_keys = ['weatherOverrideForecast1', 'weatherOverrideForecast2', 'weatherOverrideForecast3', 'weatherOverrideForecast4']
+        add_ent_keys = ['weatherOverrideForecast1', 'weatherOverrideForecast2', 'weatherOverrideForecast3', 'weatherOverrideForecast4', 'statusIcon1', 'statusIcon2', 'alarmControl']
         for ent_key in add_ent_keys:
             val = self.raw_config.get(ent_key)
             if val is not None:
                 entityIds.append(val.get("entity"))
         return entityIds
+
+    def get_entity_list(self):
+        entitys = []
+        if self.entity is not None:
+            entitys.append(self.entity)
+        else:
+            for e in self.entities:
+                entitys.append(e)
+        return entitys
+
 
 class LuiBackendConfig(object):
 
@@ -54,7 +77,7 @@ class LuiBackendConfig(object):
         return target
 
     def __init__(self, ha_api, config_in):
-        self._ha_api = ha_api
+        apis.ha_api = ha_api
         self._config = {}
         self._config_cards = []
         self._config_screensaver = None
@@ -67,34 +90,38 @@ class LuiBackendConfig(object):
             'model': "eu",
             'sleepTimeout': 20,
             'sleepBrightness': 20,
+            'screenBrightness': 100,
+            'defaultBackgroundColor': "ha-dark",
             'sleepTracking': None,
+            'sleepTrackingZones': ["not_home", "off"],
+            'sleepOverride': None,
             'locale': "en_US",
             'timeFormat': "%H:%M",
             'dateFormatBabel': "full",
+            'dateAdditionalTemplate': "",
+            'timeAdditionalTemplate': "",
             'dateFormat': "%A, %d. %B %Y",
             'cards': [{
                 'type': 'cardEntities',
                 'entities': [{
-                    'entity': 'switch.test_item',
-                    'name': 'Test Item'
-                    }, {
-                    'entity': 'switch.test_item'
-                }],
-                'title': 'Example Entities Page'
-            }, {
-                'type': 'cardGrid',
-                'entities': [{
-                    'entity': 'switch.test_item'
-                    }, {
-                    'entity': 'switch.test_item'
-                    }, {
-                    'entity': 'switch.test_item'
-                    }
-                ],
-                'title': 'Example Grid Page'
-            }, {
-                'type': 'climate',
-                'entity': 'climate.test_item',
+                    'entity': 'iText.',
+                    'name': 'MQTT Config successful',
+                    'icon': 'mdi:check',
+                    'color:': [0, 255, 0],
+                    },{
+                    'entity': 'iText.',
+                    'name': 'Continue adding',
+                    'icon': 'mdi:arrow-right-bold',
+                    },{
+                    'entity': 'iText.',
+                    'name': 'cards to your',
+                    'icon': 'mdi:card',
+                    },{
+                    'entity': 'iText.',
+                    'name': 'apps.yaml',
+                    'icon': 'mdi:cog',
+                    }],
+                'title': 'Setup successful'
             }],
             'screensaver': {
                 'type': 'screensaver',
@@ -116,9 +143,9 @@ class LuiBackendConfig(object):
         self.load(config_in)
 
     def load(self, inconfig):
-        self._ha_api.log("Input config: %s", inconfig)
+        apis.ha_api.log("Input config: %s", inconfig)
         self._config = self.dict_recursive_update(inconfig, self._DEFAULT_CONFIG)
-        self._ha_api.log("Loaded config: %s", self._config)
+        apis.ha_api.log("Loaded config: %s", self._config)
         
         # parse cards displayed on panel
         pos = 0
@@ -128,9 +155,12 @@ class LuiBackendConfig(object):
         # parse screensaver
         self._config_screensaver = Card(self.get("screensaver"))
 
-        # parsed hidden pages that can be accessed through navigate
+        # parse hidden pages that can be accessed through navigate
         for card in self.get("hiddenCards"):
             self._config_hidden_cards.append(Card(card))
+
+        # all entites sorted by generated key, to be able to use short identifiers
+        self._config_entites_table = {x.uuid: x for x in self.get_all_entitys()}
 
     def get(self, name):
         path = name.split(".")
@@ -150,10 +180,18 @@ class LuiBackendConfig(object):
     def get_all_entity_names(self):
         entities = []
         for card in self._config_cards:
+            entities.extend(card.get_entity_names())
+        for card in self._config_hidden_cards:
+            entities.extend(card.get_entity_names())
+        entities.extend(self._config_screensaver.get_entity_names())
+        return entities
+
+    def get_all_entitys(self):
+        entities = []
+        for card in self._config_cards:
             entities.extend(card.get_entity_list())
         for card in self._config_hidden_cards:
             entities.extend(card.get_entity_list())
-        entities.extend(self._config_screensaver.get_entity_list())
         return entities
 
     def getCard(self, pos):

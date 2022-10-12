@@ -1,7 +1,28 @@
 default_config:
 
 tts:
-  - platform: google_translate
+  - platform: marytts
+    host: "localhost"
+    port: 59125
+    codec: "WAVE_FILE"
+    voice: "cmu-slt-hsmm"
+    language: "en_US"
+    # effect:
+    #   Volume: "amount:2.0;"
+    #   TractScaler: "amount:1.5;"
+    #   F0Scale: "f0Scale:2.0;"
+    #   F0Add: "f0Add:50.0;"
+    #   Rate: "durScale:1.5;"
+    #   Robot: "amount:100.0;"
+    #   Whisper: "amount:100.0;"
+    #   Stadium: "amount:100.0"
+    #   Chorus: "delay1:466;amp1:0.54;delay2:600;amp2:-0.10;delay3:250;amp3:0.30"
+    #   FIRFilter: "type:3;fc1:500.0;fc2:2000.0"
+    #   JetPilot: ""
+
+twilio:
+  account_sid: !secret twilio_account_sid
+  auth_token: !secret twilio_auth_token
 
 group: !include groups.yaml
 automation: !include automations.yaml
@@ -13,7 +34,8 @@ homeassistant:
   customize: !include customize.yaml
   auth_providers:
     - type: homeassistant
-    
+  packages: !include_dir_merge_named packages
+
 switch:
   - platform: command_line
     switches:
@@ -26,10 +48,13 @@ switch:
 
 stream:
 
+magic_areas:
+
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - !secret trusted_proxy
+    - !secret trusted_proxy_lan
+    - !secret trusted_proxy_cloudflared
 
 recorder:
   db_url: !secret recorder_db_url
@@ -48,8 +73,14 @@ telegram_bot:
 
 notify:
   - platform: telegram
-    name: telegram
+    name: Telegram
     chat_id: !secret chat_id
+  - name: Twilio SMS
+    platform: twilio_sms
+    from_number: !secret twilio_from_number
+  - name: Twilio Voice
+    platform: twilio_call
+    from_number: !secret twilio_from_number
 
 frontend:
   themes: !include_dir_merge_named themes

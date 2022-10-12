@@ -1,1007 +1,679 @@
-- id: 01615254857237
-  alias: '[Inst Cool] ZHA - Aqara Wireless Mini Switch'
-  description: ''
-  use_blueprint:
-    path: SeanM/zha-aqara-wireless-mini-switch.yaml
-    input:
-      aqara_mini_switch: 285e2c27177ffcb993cb0df0dd6484c0
-      button_single_press:
-      - service: script.button_press
-- id: 01630338394811
-  alias: '[Inst Cool] Light Animation- Bulb Colors'
-  description: ''
+- id: '1664921368731'
+  alias: YERP [boilerplate] Runtime
   trigger:
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_boilerplate_threshold_countdown
+    alias: Threshold Expires
+    id: Threshold Expires
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_boilerplate_warmup
+    alias: Warmup Expires
+    id: Warmup Expires
   - platform: state
-    entity_id: counter.stage_inst_cool
-    id: Stage Change
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        below: '3'
-        above: '1'
-      sequence:
-      - choose:
-        - conditions:
-          - condition: state
-            entity_id: input_boolean.inst_cool_door
-            state: 'on'
-          sequence:
-          - service: scene.turn_on
-            data:
-              transition: 1
-            target:
-              entity_id: scene.inst_cool_white
-        default:
-        - service: scene.turn_on
-          data:
-            transition: 1
-          target:
-            entity_id: scene.inst_cool_blue
-    - conditions:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '2'
-        below: '6'
-      sequence:
-      - service: scene.turn_on
-        data:
-          transition: 1
-        target:
-          entity_id: scene.inst_cool_green
-    - conditions:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '5'
-        below: '7'
-      sequence:
-      - service: scene.turn_on
-        data:
-          transition: 1
-        target:
-          entity_id: scene.inst_cool_yellow
-    - conditions:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '6'
-        below: '7'
-      sequence:
-      - service: scene.turn_on
-        target:
-          entity_id: scene.red
-        data: {}
-    - conditions:
-      - condition: state
-        entity_id: counter.stage_inst_cool
-        state: '7'
-      sequence:
-      - service: scene.turn_on
-        data: {}
-        target:
-          entity_id:
-          - scene.red
-    - conditions:
-      - condition: state
-        entity_id: counter.stage_inst_cool
-        state: '8'
-      sequence:
-      - service: scene.turn_on
-        target:
-          entity_id: scene.inst_cool_white
-        metadata: {}
-    default: []
-  mode: restart
-- id: '01630552633352'
-  alias: '[Inst Cool] Physical Sensors to Booleans'
-  description: ''
-  trigger:
+    entity_id:
+    - input_boolean.yerp_boilerplate_area_enabled
+    alias: Area Enabled/Disabled
+    id: Area Enabled/Disabled
   - platform: state
-    entity_id: binary_sensor.ecolink_pir_red_led_any
-    id: Motion On
+    entity_id:
+    - input_select.yerp_boilerplate_spotting_status
+    alias: Spotting Status Changes
+    id: Spotting Status Changes
+  - platform: state
+    entity_id:
+    - binary_sensor.lumi_lumi_motion_ac02_iaszone
+    alias: Activity Device State Changes
+    id: Activity Device State Changes
+    enabled: false
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_boilerplate_this_session_spotting
+    id: This Session Spotting Changes
+    alias: This Session Spotting Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_boilerplate_gate_status
+    id: Gate Status Changes
+    alias: Gate Status Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_boilerplate_session_active
+    alias: Activity Entity State Changes
+    id: Activity Entity State Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_boilerplate_session_completed
+    alias: Session Completed
+    id: Session Completed
     to: 'on'
-    from: 'off'
-  - type: opened
-    platform: device
-    device_id: c9015e5ee53bdd5295767c6fd594a7b3
-    entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
-    domain: binary_sensor
-    id: Door is opened
-  - platform: state
-    entity_id: binary_sensor.ecolink_pir_red_led_any
-    id: Motion Off
-    to: 'off'
-    from: 'on'
-  - type: not_opened
-    platform: device
-    device_id: c9015e5ee53bdd5295767c6fd594a7b3
-    entity_id: binary_sensor.door_window_sensor_access_control_window_door_is_open
-    domain: binary_sensor
-    id: Door is closed
+  - platform: homeassistant
+    event: start
+    id: HA Starts
   condition: []
   action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Door is opened
-      sequence:
-      - service: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.inst_cool_door
-        data: {}
-    - conditions:
-      - condition: trigger
-        id: Motion On
-      sequence:
-      - service: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.inst_cool_motion
-        data: {}
-    - conditions:
-      - condition: trigger
-        id: Motion Off
-      sequence:
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_motion
-    - conditions:
-      - condition: trigger
-        id: Door is closed
-      sequence:
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_door
-    default: []
-  mode: restart
-- id: 01630992468671
-  alias: '[Inst Cool] Incrementation - Seconds'
-  description: ''
-  trigger: []
-  condition:
-  - condition: state
-    entity_id: input_boolean.inst_cool_yerp_on_off
-    state: 'on'
-  action:
-  - repeat:
-      until:
-      - condition: state
-        entity_id: input_boolean.inst_cool_presence
-        state: 'off'
-      sequence:
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
-      - if:
+  - if:
+    - condition: trigger
+      id: Activity Device State Changes
+    then:
+    - choose:
+      - conditions:
         - condition: state
-          entity_id: input_boolean.inst_cool_presence
+          entity_id: binary_sensor.lumi_lumi_motion_ac02_iaszone
           state: 'on'
-        - condition: numeric_state
-          entity_id: counter.stage_inst_cool
-          above: '2'
-          below: '8'
-        then:
-        - service: counter.increment
+        sequence:
+        - service: input_boolean.turn_on
           data: {}
           target:
-            entity_id: counter.inst_cool_this_session_total_time
-        - if:
-          - condition: state
-            entity_id: input_boolean.inst_cool_motion
-            state: 'off'
-          then:
-          - service: counter.increment
-            data: {}
-            target:
-              entity_id:
-              - counter.inst_cool_stage_idle_time
-  mode: single
-- id: '01636434600570'
-  alias: '[Inst Cool] Interrupts - Motion w/Presence'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_boolean.inst_cool_motion
-    to: 'on'
-    id: Motion On
-  - platform: state
-    entity_id: input_boolean.inst_cool_motion
-    id: Motion Off
-    to: 'off'
-  condition:
-  - condition: numeric_state
-    entity_id: counter.stage_inst_cool
-    above: '1'
-    below: '8'
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Motion On
-      sequence:
-      - service: input_boolean.turn_on
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_presence
-      - service: light.turn_on
-        target:
-          entity_id:
-          - light.mock_bathroom_light
-        data:
-          flash: short
-          brightness_pct: 100
-          color_name: purple
-      - service: light.turn_on
-        data:
-          color_name: green
-          transition: 1
-          flash: short
-        target:
-          entity_id: light.mock_bathroom_light
-      - service: counter.configure
-        target:
-          entity_id: counter.stage_inst_cool
-        data:
-          value: 3
-      - service: counter.reset
-        data: {}
-        target:
-          entity_id: counter.inst_cool_stage_idle_time
-    default: []
-  mode: restart
-- id: 01636571529053
-  alias: '[Inst Cool] Metrics - Record Session Data'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_boolean.inst_cool_presence
-    to: 'on'
-    id: Presence On
-    from: 'off'
-  - platform: state
-    entity_id: input_boolean.inst_cool_presence
-    to: 'off'
-    id: Presence Off
-    from: 'on'
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Presence On
-      sequence:
-      - service: input_datetime.set_datetime
-        target:
-          entity_id: input_datetime.inst_cool_session_start_time
-        data:
-          datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
-    - conditions:
-      - condition: trigger
-        id: Presence Off
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '2'
-      sequence:
-      - service: counter.configure
-        data_template:
-          entity_id: counter.inst_cool_last_session_total_time
-          value: '{{ states(''counter.inst_cool_this_session_total_time'') | int }}'
-      - service: counter.configure
-        data_template:
-          entity_id: counter.inst_cool_last_session_final_stage
-          value: '{{ states(''counter.stage_inst_cool'') | int }}'
-      - service: input_datetime.set_datetime
-        target:
-          entity_id: input_datetime.inst_cool_session_end_time
-        data:
-          datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
-    default: []
-  mode: restart
-- id: 01636574483658
-  alias: '[Inst Cool] Light Animation - Standby'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    to: '2'
-  condition: []
-  action:
-  - repeat:
-      until:
-      - condition: not
+            entity_id: input_boolean.yerp_boilerplate_session_active
+        - service: input_select.select_option
+          target:
+            entity_id: input_select.yerp_boilerplate_spotting_status
+          data:
+            option: active
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.lumi_lumi_motion_ac02_iaszone
+          state: 'off'
+        sequence:
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_session_active
+        - service: input_select.select_option
+          target:
+            entity_id: input_select.yerp_boilerplate_spotting_status
+          data:
+            option: idle
+    alias: Activity from device; relay to boolean
+    enabled: false
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_boilerplate_area_enabled
+      state: 'on'
+    then:
+    - if:
+      - condition: or
         conditions:
         - condition: state
-          entity_id: input_number.inst_cool_stage_time
-          state: '2'
-      sequence:
-      - service: light.turn_on
-        target:
-          device_id: 7bed00ce60b78ec71813660796437932
-        data:
-          color_name: blue
-          brightness_pct: 1
-          transition: 3
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
-      - service: light.turn_on
-        target:
-          entity_id:
-          - light.mock_bathroom_light
-        data:
-          transition: 3
-          brightness_pct: 100
-  mode: restart
-- id: 01636574657810
-  alias: '[Inst Cool] Light Animation - Stage 1'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    to: '1'
-  condition: []
-  action:
-  - repeat:
-      until:
-      - condition: not
-        conditions:
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: offline
         - condition: state
-          entity_id: input_number.inst_cool_stage_time
-          state: '1'
-      sequence:
-      - service: light.turn_on
-        target:
-          entity_id: light.mock_bathroom_light
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: warmup
+      then:
+      - service: input_select.select_option
         data:
-          color_name: purple
-          brightness_pct: 1
-          transition: 3
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 3
-          milliseconds: 0
-      - service: light.turn_on
+          option: online
         target:
-          entity_id:
-          - light.mock_bathroom_light
-        data:
-          transition: 3
-          brightness_pct: 100
+          entity_id: input_select.yerp_boilerplate_area_status
       - if:
         - condition: state
-          entity_id: input_boolean.inst_cool_door
+          entity_id: input_boolean.yerp_boilerplate_gate_status
           state: 'on'
+          alias: Gated Status is ready
+        - condition: or
+          conditions:
+          - condition: trigger
+            id: Area Enabled/Disabled
+          - condition: trigger
+            id: Gate Status Changes
         then:
-        - service: scene.turn_on
-          target:
-            entity_id: scene.inst_cool_white
-          metadata: {}
-        - wait_for_trigger:
-          - platform: state
-            entity_id:
-            - input_boolean.inst_cool_door
-            to: 'off'
-          continue_on_timeout: false
-        else:
-        - service: scene.turn_on
-          target:
-            entity_id: scene.inst_2_purple
-          metadata: {}
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 1
-            milliseconds: 0
-        - service: light.turn_on
-          target:
-            entity_id: light.mock_bathroom_light
+        - service: input_select.select_option
           data:
-            color_name: purple
-            brightness_pct: 1
-            transition: 1
-  mode: restart
-- id: 01642209450586
-  alias: '[Inst Cool] Interrupts - Door Opens / Closes'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_boolean.inst_cool_door
-    to: 'on'
-    id: Door Open
-  - platform: state
-    entity_id: input_boolean.inst_cool_door
-    to: 'off'
-    id: Door Close
-  condition:
-  - condition: numeric_state
-    entity_id: counter.stage_inst_cool
-    above: '0'
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Door Open
+            option: warmup
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+        - service: timer.start
+          data:
+            duration: '{{ states(''input_number.yerp_boilerplate_warmup'') }}'
+          target:
+            entity_id: timer.yerp_boilerplate_warmup
+      alias: If Session is Offline or Warmup
+    - if:
       - condition: state
-        entity_id: input_boolean.inst_cool_yerp_on_off
-        state: 'on'
-      sequence:
-      - service: scene.turn_on
-        data: {}
-        target:
-          entity_id:
-          - scene.inst_cool_white
-      - service: automation.trigger
-        target:
-          entity_id:
-          - automation.inst_cool_metrics_record_session_data
-        data:
-          skip_condition: false
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
-      - service: script.inst_cool_reset
-        data: {}
-    - conditions:
-      - condition: trigger
-        id: Door Close
+        entity_id: input_select.yerp_boilerplate_session_status
+        state: spotting
+      then:
+      - if:
+        - condition: trigger
+          id: Threshold Expires
+        then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_session_completed
+        alias: If threshold expires, mark session as completed
+      - if:
+        - condition: trigger
+          id: Activity Entity State Changes
+        then:
+        - choose:
+          - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_session_active
+              state: 'on'
+              alias: If activity turned on
+            sequence:
+            - service: timer.cancel
+              target:
+                entity_id: timer.yerp_boilerplate_threshold_countdown
+              data: {}
+            - service: input_text.set_value
+              data:
+                value: '0'
+              target:
+                entity_id: input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
+          - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_session_active
+              state: 'off'
+              alias: If activity turned off
+            sequence:
+            - service: timer.start
+              data:
+                duration: '{{ states(''input_number.yerp_boilerplate_threshold'')
+                  }}'
+              target:
+                entity_id: timer.yerp_boilerplate_threshold_countdown
+            - if:
+              - condition: state
+                entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                state: 'on'
+              then:
+              - service: input_text.set_value
+                data:
+                  value: '{{ now().timestamp() | round }}'
+                target:
+                  entity_id: input_text.yerp_boilerplate_this_session_idle_start_timestamp
+          alias: Pick Activity on or off
+        alias: If Activity Boolean changes
+      - if:
+        - condition: trigger
+          id: Gate Status Changes
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+          state: 'off'
+        then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_session_completed
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+        - service: input_select.select_option
+          data:
+            option: userexit
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+        alias: If open/close triggers, set session to userexit
+      alias: If Session is Spotting
+    - if:
       - condition: state
-        entity_id: input_boolean.inst_cool_yerp_on_off
-        state: 'on'
-      sequence:
-      - service: counter.configure
-        target:
-          entity_id: counter.stage_inst_cool
-        data:
-          value: 1
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 5
-          milliseconds: 0
-      - service: counter.increment
-        data: {}
-        target:
-          entity_id: counter.stage_inst_cool
-      - service: automation.turn_on
-        data: {}
-        target:
-          entity_id: automation.inst_cool_incrementation_seconds
-      - service: automation.trigger
-        data: {}
-        target:
-          entity_id: automation.inst_cool_incrementation_seconds
-      - service: scene.turn_on
-        target:
-          entity_id: scene.inst_2_purple
-        metadata: {}
-    default: []
-  mode: restart
-- id: 01651266094335
-  alias: '[Inst Cool] On / Off'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_boolean.inst_cool_yerp_on_off
-    id: Turned Off
-    to: 'off'
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    id: Stage 1
-    to: '1'
-  - platform: state
-    entity_id: input_boolean.inst_cool_yerp_on_off
-    id: Turned On
-    to: 'on'
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Turned On
-      sequence:
-      - service: counter.configure
-        target:
-          entity_id: counter.stage_inst_cool
-        data:
-          value: 1
-      - service: counter.reset
-        data: {}
-        target:
-          entity_id:
-          - counter.inst_cool_stage_idle_time
-          - counter.inst_cool_this_session_total_time
-          - counter.inst_cool_longest_idle_time_this_session
-    - conditions:
-      - condition: trigger
-        id: Turned Off
-      sequence:
-      - service: automation.turn_off
-        data: {}
-        target:
-          entity_id:
-          - automation.inst_cool_incrementation_seconds
-      - service: automation.trigger
-        data: {}
-        target:
-          entity_id:
-          - automation.inst_cool_test_notification
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_presence
-      - service: light.turn_off
-        target:
-          entity_id:
-          - light.mock_bathroom_light
-        data:
-          transition: 1
-      - service: counter.reset
-        data: {}
-        target:
-          entity_id:
-          - counter.inst_cool_stage_idle_time
-          - counter.inst_cool_this_session_total_time
-          - counter.inst_cool_longest_idle_time_this_session
-      - service: counter.configure
-        data:
-          value: 0
-        target:
-          entity_id: counter.stage_inst_cool
-    - conditions:
-      - condition: trigger
-        id: Stage 1
+        entity_id: input_select.yerp_boilerplate_session_status
+        state: warmup
+        alias: If Warmup
+      then:
+      - if:
+        - condition: trigger
+          id: Warmup Expires
+        then:
+        - if:
+          - condition: state
+            entity_id: input_select.yerp_boilerplate_activity_status
+            state: active
+          then:
+          - wait_for_trigger:
+            - platform: state
+              entity_id:
+              - input_select.yerp_boilerplate_activity_status
+              to: idle
+            alias: Wait until idle
+          else: []
+          alias: Check to see if activity status is on
+        - service: input_select.select_option
+          data:
+            option: standby
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+        alias: If Warmup Expires, Advance
+      alias: If Session is Warmup
+    - if:
       - condition: state
-        entity_id: input_boolean.inst_cool_door
-        state: 'off'
-        for:
-          hours: 0
-          minutes: 0
-          seconds: 5
-      - condition: state
-        entity_id: input_boolean.inst_cool_yerp_on_off
-        state: 'on'
-      sequence:
-      - service: counter.reset
-        data: {}
-        target:
-          entity_id:
-          - counter.inst_cool_stage_idle_time
-          - counter.inst_cool_this_session_total_time
-          - counter.inst_cool_longest_idle_time_this_session
-      - service: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.inst_cool_presence
-        data: {}
+        entity_id: input_select.yerp_boilerplate_session_status
+        state: standby
+      then:
+      - if:
+        - condition: trigger
+          id: Activity Entity State Changes
+        then:
+        - if:
+          - condition: state
+            entity_id: input_boolean.yerp_boilerplate_session_active
+            state: 'on'
+          then:
+          - service: input_select.select_option
+            data:
+              option: spotting
+            target:
+              entity_id: input_select.yerp_boilerplate_session_status
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+          - service: input_text.set_value
+            target:
+              entity_id: input_text.yerp_boilerplate_this_session_activation_timestamp
+            data:
+              value: '{{ now().timestamp() | round }}'
+          - service: input_text.set_value
+            target:
+              entity_id: input_text.yerp_boilerplate_this_session_duration_seconds
+            data:
+              value: '0'
+          - service: script.yerp_boilerplate_update_sensors_every_second_while_spotting
+            data: {}
+      - if:
+        - condition: trigger
+          id: Gate Status Changes
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+          state: 'off'
+        then:
+        - service: input_select.select_option
+          data:
+            option: warmup
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+      alias: If Session is Standby
+    - if:
+      - condition: trigger
+        id: Gate Status Changes
+      then:
       - choose:
         - conditions:
           - condition: state
-            entity_id: input_boolean.inst_cool_door
-            state: 'off'
-          sequence: []
+            entity_id: input_boolean.yerp_boilerplate_gate_status
+            state: 'on'
+            alias: If open/closed status is on, go to warmup
+          sequence:
+          - service: input_select.select_option
+            target:
+              entity_id: input_select.yerp_boilerplate_session_status
+            data:
+              option: warmup
+          - service: timer.start
+            data:
+              duration: '{{ states(''input_number.yerp_boilerplate_warmup'') }}'
+            target:
+              entity_id: timer.yerp_boilerplate_warmup
         - conditions:
           - condition: state
-            entity_id: input_boolean.inst_cool_door
-            state: 'on'
+            entity_id: input_boolean.yerp_boilerplate_gate_status
+            state: 'off'
+            alias: If open/closed status is off
+          - condition: state
+            entity_id: input_select.yerp_boilerplate_session_status
+            state: spotting
+            alias: If Spotting
           sequence:
-          - wait_for_trigger:
-            - platform: state
-              entity_id: input_boolean.inst_cool_door
-              to: 'off'
-              for:
-                hours: 0
-                minutes: 0
-                seconds: 5
-        default: []
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 10
-          milliseconds: 0
-      - service: counter.increment
-        data: {}
+          - service: timer.cancel
+            target:
+              entity_id: timer.yerp_boilerplate_warmup
+            data: {}
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_boilerplate_session_completed
+            alias: Mark Session as Completed
+      alias: If Gate status changes
+    alias: Area is On and Completed is Off
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_boilerplate_area_enabled
+      state: 'off'
+    then:
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.yerp_boilerplate_session_status
+      data:
+        option: offline
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+      data: {}
+    - service: input_select.select_option
+      data:
+        option: offline
+      target:
+        entity_id: input_select.yerp_boilerplate_area_status
+    - service: timer.cancel
+      data: {}
+      target:
+        entity_id:
+        - timer.yerp_boilerplate_warmup
+        - timer.yerp_boilerplate_threshold_countdown
+    - service: input_select.select_option
+      data:
+        option: offline
+      target:
+        entity_id: input_select.yerp_boilerplate_reason_for_deactivation
+    alias: Area is Off
+  - if:
+    - condition: trigger
+      id: Session Completed
+    then:
+    - service: timer.cancel
+      data: {}
+      target:
+        entity_id:
+        - timer.yerp_boilerplate_threshold_countdown
+        - timer.yerp_boilerplate_warmup
+      alias: Cancel out the timers
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_boilerplate_this_session_activation_timestamp'')
+          | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'') }}'
+      target:
+        entity_id: input_text.yerp_boilerplate_last_session_activation_datetime
+      alias: Set Last Session's activation time
+    - service: input_text.set_value
+      data:
+        value: '{{ now().timestamp() | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'')
+          }}'
+      target:
+        entity_id: input_text.yerp_boilerplate_last_spotting_deactivation_datetime
+      alias: Set Last Session's completed time
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_boilerplate_this_session_max_idle_duration_seconds'')
+          }}'
+      target:
+        entity_id: input_text.yerp_boilerplate_last_session_max_idle_duration_seconds
+      alias: Set Last Session's Max Idle
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_boilerplate_this_session_duration_seconds'')
+          }}'
+      target:
+        entity_id: input_text.yerp_boilerplate_last_session_duration_seconds
+      alias: Set Last Session's Duration
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+    - service: input_select.select_option
+      data:
+        option: '{{ states(''input_select.yerp_boilerplate_session_status'') }}'
+      target:
+        entity_id: input_select.yerp_boilerplate_reason_for_deactivation
+    - service: rest_command.update_nocodb_sessions
+      continue_on_error: true
+      data:
+        sessionstart: '{{ states(''input_text.yerp_boilerplate_last_session_activation_datetime'')
+          }}'
+        sessionend: '{{ states(''input_text.yerp_boilerplate_last_spotting_deactivation_datetime'')
+          }}'
+        sessionlength: '{{ states(''input_text.yerp_boilerplate_last_session_duration_seconds'')
+          }}'
+        longestgap: '{{ states(''input_text.yerp_boilerplate_last_session_max_idle_duration_seconds'')
+          }}'
+        endtrigger: '{{ states(''input_select.yerp_reason_for_deactivation'') }}'
+        suppliesused: ''
+        calledems: ''
+        area: boilerplate
+      alias: Send Report to DB
+    - if:
+      - condition: state
+        entity_id: input_select.yerp_boilerplate_session_status
+        state: spotting
+      then:
+      - service: input_select.select_option
+        data:
+          option: seekinghelp
         target:
-          entity_id: counter.stage_inst_cool
-    default: []
-  mode: restart
-- id: 01651267021318
-  alias: '[VP] Auto Door'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    id: Stage 3
-    to: '3'
-  condition:
-  - condition: state
-    entity_id: input_boolean.vp_ongoing_door
-    state: 'on'
-  action:
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: '{{ range(0, 600)|random|int }}'
-      milliseconds: 0
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.inst_cool_door
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: '{{ range(0, 15)|random|int }}'
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.inst_cool_door
-  mode: single
-- id: '01651267712410'
-  alias: '[VP] On/Off'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_boolean.vp_on_off
-    to: 'on'
-    id: VP On
-  - platform: state
-    entity_id: input_boolean.vp_on_off
-    to: 'off'
-    id: VP Off
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: VP On
-      sequence:
-      - service: input_boolean.turn_on
-        data: {}
-        target:
-          entity_id:
-          - input_boolean.vp_ongoing_door
-          - input_boolean.vp_ongoing_motion
-    - conditions:
-      - condition: trigger
-        id: VP Off
-      sequence:
+          entity_id: input_select.yerp_boilerplate_session_status
+    - service: script.toggle
+      data: {}
+      target:
+        entity_id: script.yerp_boilerplate_reset_session_automatic
+    alias: Session Completed
+  - if:
+    - condition: trigger
+      id: Gate Status Changes
+    then:
+    - if:
+      - condition: state
+        entity_id: input_boolean.yerp_boilerplate_gate_status
+        state: 'off'
+        alias: If Status is Off
+      then:
+      - if:
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+          state: 'on'
+        then:
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id:
+            - timer.yerp_boilerplate_threshold_countdown
+            - timer.yerp_boilerplate_warmup
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_session_completed
+      - if:
+        - condition: state
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: warmup
+        then:
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id: timer.yerp_boilerplate_warmup
       - service: input_boolean.turn_off
         data: {}
         target:
-          entity_id:
-          - input_boolean.inst_cool_motion
-          - input_boolean.vp_ongoing_motion
-          - input_boolean.vp_ongoing_door
-    default: []
-  mode: restart
-- id: 01651271489428
-  alias: '[Inst Cool] Metrics - Longest Idle Time per Session'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: sensor.inst_cool_total_idle_time
-  condition:
-  - condition: numeric_state
-    entity_id: counter.inst_cool_longest_idle_time_this_session
-    below: sensor.inst_cool_total_idle_time
-  - condition: numeric_state
-    entity_id: counter.stage_inst_cool
-    above: '2'
-    below: '9'
-  action:
-  - service: counter.configure
-    data_template:
-      entity_id: counter.inst_cool_longest_idle_time_this_session
-      value: '{{ states(''sensor.inst_cool_total_idle_time'') | int(0) }}'
-  mode: restart
-- id: 01651274273876
-  alias: '[VP] Auto Motion'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    id: Stage 2
-    to: '2'
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 0
-  - platform: state
-    entity_id: counter.stage_inst_cool
-    id: Stage 3
-    to: '3'
-  condition:
-  - condition: state
-    entity_id: input_boolean.vp_ongoing_motion
-    state: 'on'
-  action:
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: '{{ range(10, 45)|random|int }}'
-      milliseconds: 0
-  - service: input_boolean.turn_on
-    data: {}
-    target:
-      entity_id: input_boolean.inst_cool_motion
-  - delay:
-      hours: 0
-      minutes: 0
-      seconds: 5
-      milliseconds: 0
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.inst_cool_motion
-  mode: restart
-- id: 01651278090507
-  alias: '[Inst Cool] Incrementation - Stage'
-  description: ''
-  trigger:
-  - platform: numeric_state
-    entity_id: sensor.inst_cool_stage_percent
-    above: '99.99'
-  condition: []
-  action:
-  - service: counter.increment
-    data: {}
-    target:
-      entity_id: counter.stage_inst_cool
-  - service: counter.reset
-    data: {}
-    target:
-      entity_id: counter.inst_cool_stage_idle_time
-  mode: restart
-- id: 01651873195722
-  alias: '[Hub] YERP! South Server Status Notifications'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - sensor.remote_connection_to_yerp_south
-    to: connected
-    id: Online
-    from: reconnecting
-  - platform: state
-    entity_id:
-    - sensor.remote_connection_to_yerp_south
-    to: reconnecting
-    id: Offline
-    from: connected
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 0
-  condition: []
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Online
-      sequence:
-      - service: notify.mobile_app_fluffphone
-        data:
-          title: YERP! South Status
-          message: Internet connection has been restored.
-    - conditions:
-      - condition: trigger
-        id: Offline
-      sequence:
-      - service: notify.mobile_app_fluffphone
-        data:
-          title: YERP! South Status
-          message: Internet connection has been lost.
-    default: []
-  mode: restart
-- id: '1651953738487'
-  alias: '[Inst Cool] Session End Notification'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - input_boolean.inst_cool_yerp_on_off
-    id: 'Off'
-    to: 'off'
-  - platform: state
-    entity_id:
-    - counter.stage_inst_cool
-    to: '8'
-    id: Alarm
-  - platform: state
-    entity_id:
-    - input_boolean.inst_cool_door
-    to: 'on'
-    id: Door Opened
-  condition:
-  - condition: numeric_state
-    entity_id: counter.inst_cool_this_session_total_time
-    above: '10'
-  action:
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: 'Off'
-      sequence:
-      - service: input_text.set_value
-        data:
-          value: System was turned off
-        target:
-          entity_id: input_text.inst_cool_last_session_end
-    - conditions:
-      - condition: trigger
-        id: Alarm
-      sequence:
-      - service: input_text.set_value
-        data:
-          value: Alarm was triggered
-        target:
-          entity_id: input_text.inst_cool_last_session_end
-    - conditions:
-      - condition: trigger
-        id: Door Opened
-      sequence:
-      - service: input_text.set_value
-        data:
-          value: Door was opened
-        target:
-          entity_id: input_text.inst_cool_last_session_end
-    default: []
-  - choose:
-    - conditions:
-      - condition: trigger
-        id: Alarm
-      - condition: not
-        conditions:
-        - condition: state
-          entity_id: input_select.inst_cool_config_session_end_notifications
-          state: None
-      sequence:
-      - service: notify.mobile_app_fluffphone
-        data:
-          message: '{{states(''input_text.inst_cool_last_session_end'') }} after {%
-            set totaltime=states(''counter.inst_cool_this_session_total_time'') |
-            int(0) %}{% if totaltime >= 1 and totaltime <= 60 %}{{states(''counter.inst_cool_this_session_total_time'')
-            }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_this_session_total_time'')
-            | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
-            totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_this_session_total_time'')
-            | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% else
-            %}{{states(''counter.inst_cool_this_session_total_time'') | int(0) | timestamp_custom(''%-H:%-M:%S'',
-            false) }}{% endif %}. The longest gap between motion lasted for {% set
-            totaltime=states(''counter.inst_cool_longest_idle_time_this_session'')
-            | int(0) %}{% if totaltime >= 0 and totaltime <= 2 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-            }} second{% elif totaltime >= 2 and totaltime <= 60 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-            }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-            | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
-            totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-            | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% endif
-            %}.'
-          data:
-            presentation_options:
-            - alert
-            - badge
-            push:
-              sound:
-                name: default
-                critical: 1
-                volume: 1
-    default:
-    - condition: not
-      conditions:
+          entity_id: input_boolean.yerp_boilerplate_session_completed
+    - if:
       - condition: state
-        entity_id: input_select.inst_cool_config_session_end_notifications
-        state: None
-    - service: notify.mobile_app_fluffphone
+        entity_id: input_boolean.yerp_boilerplate_gate_status
+        state: 'on'
+        alias: If Status is On
+      then:
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_boilerplate_session_completed
+    alias: Gate Status Changes
+  - if:
+    - condition: trigger
+      id: HA Starts
+    then:
+    - service: input_text.reload
+      data: {}
+    - service: input_boolean.reload
+      data: {}
+  mode: parallel
+  max: 20
+- id: '1665447822166'
+  alias: YERP [Blueprint] Hardware Configurator
+  description: ''
+  use_blueprint:
+    path: YERP/area-configurator.yaml
+    input:
+      activity_state: binary_sensor.lumi_lumi_motion_ac02_iaszone
+      gate_boolean: input_boolean.yerp_boilerplate_gate_status
+      gate_state: binary_sensor.door_window_sensor_access_control_window_door_is_open
+      activity_boolean: input_boolean.yerp_boilerplate_session_active
+- id: '1665515881085'
+  alias: YERP [boilerplate] Seeking Help Automation
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.yerp_boilerplate_session_status
+    to: seekinghelp
+  condition: []
+  action:
+  - service: notify.mobile_app_ipad
+    data:
+      title: YERP! Seeking Help
+      message: Possibly unresponsive person in area, please check on them
       data:
-        message: '{{states(''input_text.inst_cool_last_session_end'') }} after {%
-          set totaltime=states(''counter.inst_cool_this_session_total_time'') | int(0)
-          %}{% if totaltime >= 1 and totaltime <= 60 %}{{states(''counter.inst_cool_this_session_total_time'')
-          }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_this_session_total_time'')
-          | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
-          totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_this_session_total_time'')
-          | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% else
-          %}{{states(''counter.inst_cool_this_session_total_time'') | int(0) | timestamp_custom(''%-H:%-M:%S'',
-          false) }}{% endif %}. The longest gap between motion lasted for {% set totaltime=states(''counter.inst_cool_longest_idle_time_this_session'')
-          | int(0) %}{% if totaltime >= 0 and totaltime <= 2 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-          }} second{% elif totaltime >= 2 and totaltime <= 60 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-          }} seconds{% elif totaltime >= 61 and totaltime <= 119 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-          | int(0) | timestamp_custom(''%-M minute, %S seconds'', false) }}{% elif
-          totaltime >= 120 and totaltime <= 14000 %}{{states(''counter.inst_cool_longest_idle_time_this_session'')
-          | int(0) | timestamp_custom(''%-M minutes, %S seconds'', false) }}{% endif
-          %}.'
-        data:
-          presentation_options:
-          - alert
-          - badge
+        push:
+          sound:
+            name: Sherwood_Forest.caf
+            critical: 1
+            volume: 1
+  - service: notify.twilio_voice
+    data:
+      message: Here is a notification.
+      target: 18126798756
   mode: single
-- id: '1651962364032'
-  alias: '[Inst Cool] Presence On/Off'
+- id: '1665516822820'
+  alias: YERP [boilerplate] Spotting Actions
   description: ''
   trigger:
-  - platform: state
-    entity_id:
-    - input_boolean.inst_cool_presence
-    to: 'on'
-    id: Presence On
-  - platform: state
-    entity_id:
-    - input_boolean.inst_cool_presence
-    to: 'off'
-    id: Presence Off
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_boilerplate_warmup
+    id: Warmup Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_boilerplate_warmup
+    id: Warmup Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_boilerplate_warmup
+    id: Warmup is Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_boilerplate_threshold_countdown
+    id: Spotting Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_boilerplate_threshold_countdown
+    id: Spotting Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_boilerplate_threshold_countdown
+    id: Spotting is Canceled
   condition: []
   action:
-  - choose:
-    - conditions:
+  - if:
+    - condition: trigger
+      id: Warmup Begins
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        flash: short
+        rgb_color:
+        - 179
+        - 104
+        - 0
+      target:
+        entity_id: light.mock_bathroom_light
+  - if:
+    - condition: trigger
+      id: Warmup Ends
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 1
+        rgb_color:
+        - 0
+        - 6
+        - 179
+      target:
+        entity_id: light.mock_bathroom_light
+  - if:
+    - condition: or
+      conditions:
       - condition: trigger
-        id: Presence On
-      sequence:
-      - service: counter.configure
-        data:
-          value: 3
-        target:
-          entity_id: counter.stage_inst_cool
-      - service: automation.turn_on
-        data: {}
-        target:
-          entity_id: automation.inst_cool_incrementation_seconds
-      - service: automation.trigger
-        data: {}
-        target:
-          entity_id: automation.inst_cool_incrementation_seconds
-    - conditions:
+        id: Warmup is Canceled
       - condition: trigger
-        id: Presence Off
-      sequence:
-      - service: automation.turn_off
-        data: {}
-        target:
-          entity_id: automation.inst_cool_incrementation_seconds
-    default: []
-  mode: single
-- id: '1652320373903'
-  alias: '[Inst Cool] Light Animation - Warning Pulses'
-  description: ''
-  trigger:
-  - platform: state
-    entity_id:
-    - counter.stage_inst_cool
-    to: '6'
-  condition: []
-  action:
-  - repeat:
-      while:
-      - condition: numeric_state
-        entity_id: counter.stage_inst_cool
-        above: '5'
-        below: '8'
-      sequence:
-      - service: light.turn_on
-        data:
-          brightness_pct: 1
-          transition: 1
-        target:
-          entity_id: light.mock_bathroom_light
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
-      - service: light.turn_on
-        data:
-          brightness_pct: 100
-          transition: 1
-        target:
-          entity_id: light.mock_bathroom_light
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
+        id: Spotting is Canceled
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.mock_bathroom_light
+  - if:
+    - condition: trigger
+      id: Spotting Begins
+    then:
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 38
+        - 128
+        - 0
+        brightness_pct: 10
+      target:
+        entity_id: light.mock_bathroom_light
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 25
+        milliseconds: 0
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 194
+        - 26
+        brightness_pct: 25
+        transition: 5
+      target:
+        entity_id: light.mock_bathroom_light
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 10
+        milliseconds: 0
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 0
+        - 0
+        brightness_pct: 25
+        transition: 5
+        flash: long
+      target:
+        entity_id: light.mock_bathroom_light
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 15
+        milliseconds: 0
+  - if:
+    - condition: trigger
+      id: Spotting Ends
+    then:
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 255
+        - 255
+        brightness_pct: 100
+        transition: 5
+        flash: short
+      target:
+        entity_id: light.mock_bathroom_light
   mode: restart

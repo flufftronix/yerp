@@ -40,3 +40,6 @@
 #whitelist dashboard directory and files
 !dashboard
 !dashboard/*.yaml
+
+#ignore the YERP! component until it's actually doing some things
+custom_components/yerp
