@@ -19,6 +19,8 @@
 !custom_components/**
 !blueprints
 !blueprints/**
+!packages
+!packages/**
 !scripts
 !scripts/**
 !themes

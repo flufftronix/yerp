@@ -1,0 +1,538 @@
+yerp_boilerplate:
+  ################################################
+  #                                              #
+  #               HISTORY STATS                  #
+  #                                              #
+  ################################################
+  #
+  #  TO ADD:
+  #
+  #  X Total session duration, daily/weekly
+  #  X Session duration
+  #  - Session average duration, daily/weekly
+  #  X Reason for exit
+  #  - Reason for seekinghelp
+  #  - Session count, daily/weekly
+  #
+
+  sensor:
+    - platform: history_stats
+      name: "YERP [boilerplate] Total Duration of Today's Sessions"
+      entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+      state: "on"
+      type: time
+      start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [boilerplate] Total Duration of This Week's Sessions"
+      entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+      state: "on"
+      type: time
+      start: "{{ as_timestamp( now().replace(hour=0, minute=0, second=0) ) - now().weekday() * 86400 }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [boilerplate] Sessions This Week"
+      entity_id: input_boolean.yerp_boilerplate_session_completed
+      state: "on"
+      type: count
+      start: "{{ as_timestamp( now().replace(hour=0, minute=0, second=0) ) - now().weekday() * 86400 }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [boilerplate] Sessions Today"
+      entity_id: input_boolean.yerp_boilerplate_session_completed
+      state: "on"
+      type: count
+      start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+      end:
+        "{{ now() }}"
+
+        ################################################
+        #                                              #
+        #              SESSION METRICS                 #
+        #                                              #
+        ################################################
+        #
+        #  TO ADD:
+        #
+        #  - Total session length
+        #  - Longest this session gap, longest last session gap
+        #  - Debrief inputs: Reported reason (false positive, accurately reported an emergency,
+        #    accurately reported a nonemergency (ie, someone falling asleep), was notification received, notes
+        #
+
+  timer:
+    yerp_boilerplate_warmup:
+      duration: 00:00:10
+    yerp_boilerplate_threshold_countdown:
+      duration: 00:01:00
+
+  counter:
+    yerp_boilerplate_completed_sessions:
+      initial: 0
+      step: 1
+
+  input_boolean:
+    yerp_boilerplate_user_button_status:
+      name: "YERP [boilerplate] User Button Status"
+    yerp_boilerplate_area_card_details:
+      name: "YERP [boilerplate] Area Card Details"
+    yerp_boilerplate_area_enabled:
+      name: "YERP [boilerplate] Area Enabled"
+      icon: mdi:power
+    yerp_boilerplate_speaker_enabled:
+      name: "YERP [boilerplate] Speaker Enabled"
+      icon: mdi:power
+    yerp_boilerplate_tutorial_enabled_next:
+      name: "YERP [boilerplate] Tutorial Enabled (Next)"
+      icon: mdi:power
+    yerp_boilerplate_tutorial_enabled_ongoing:
+      name: "YERP [boilerplate] Tutorial Enabled (Ongoing)"
+      icon: mdi:power
+    yerp_boilerplate_light_enabled:
+      name: "YERP [boilerplate] Light Enabled"
+      icon: mdi:power
+    yerp_boilerplate_session_active:
+      name: "YERP [boilerplate] Session Active"
+      icon: mdi:motion
+    yerp_boilerplate_session_completed:
+      name: "YERP [boilerplate] Session Completed"
+    yerp_boilerplate_session_disabled:
+      name: "YERP [boilerplate] Session Disabled"
+      icon: mdi:power
+    yerp_boilerplate_gate_disabled:
+      name: "YERP [boilerplate] Gate Disable"
+    yerp_boilerplate_gate_invert:
+      name: "YERP [boilerplate] Gate Invert"
+    yerp_boilerplate_gate_adjusted:
+      name: "YERP [boilerplate] Gate Adjusted"
+    yerp_boilerplate_gate_status:
+      name: "YERP [boilerplate] Gated Status"
+    yerp_boilerplate_this_session_spotting:
+      name: "YERP [boilerplate] this Session Spotting"
+    yerp_boilerplate_this_session_activation_time:
+      name: "YERP [boilerplate] this Session Activation Time"
+
+  input_text:
+    yerp_boilerplate_this_session_activation_timestamp:
+      name: "YERP [boilerplate] This Session Activation Time"
+      initial: 0
+    yerp_boilerplate_this_session_idle_start_timestamp:
+      name: "YERP [boilerplate] This Session Idle Start"
+      initial: 0
+    yerp_boilerplate_this_session_threshold_timestamp:
+      name: "YERP [boilerplate] This Session Threshold Time"
+      initial: 0
+    yerp_boilerplate_this_session_duration_seconds:
+      name: "YERP [boilerplate] This Session Duration"
+      initial: 0
+    yerp_boilerplate_this_session_this_idle_duration_seconds:
+      name: "YERP [boilerplate] This Session This Idle Duration"
+      initial: 0
+    yerp_boilerplate_this_session_max_idle_duration_seconds:
+      name: "YERP [boilerplate] This Session Max Idle Duration"
+      initial: 0
+    yerp_boilerplate_this_session_last_idle_duration_seconds:
+      name: "YERP [boilerplate] This Spotting Last Idle Duration"
+      initial: 0
+    yerp_boilerplate_last_session_activation_datetime:
+      name: "YERP [boilerplate] Last Session Activation Time"
+      initial: 0
+    yerp_boilerplate_last_spotting_activation_datetime:
+      name: "YERP [boilerplate] Last Spotting Activation Time"
+      initial: 0
+    yerp_boilerplate_last_spotting_deactivation_datetime:
+      name: "YERP [boilerplate] Last Spotting Deactivation Time"
+      initial: 0
+    yerp_boilerplate_last_session_duration_seconds:
+      name: "YERP [boilerplate] Last Session Duration"
+      initial: 0
+    yerp_boilerplate_last_session_max_idle_duration_seconds:
+      name: "YERP [boilerplate] Last Session Max Idle Duration"
+      initial: 0
+
+  input_number:
+    yerp_boilerplate_warmup:
+      name: "YERP [boilerplate] Warmup"
+      icon: mdi:timer
+      initial: 10
+      min: 5
+      max: 180
+      step: 5
+    yerp_boilerplate_threshold:
+      name: "YERP [boilerplate] Threshold"
+      icon: mdi:timer
+      initial: 60
+      min: 10
+      max: 180
+      step: 5
+
+  input_select:
+    yerp_boilerplate_area_status:
+      name: "YERP [boilerplate] Area Status"
+      options:
+        - offline
+        - online
+        - error
+        - unavailable
+        - unknown
+    yerp_boilerplate_spotting_status:
+      name: "YERP [boilerplate] Spotting Status"
+      options:
+        - active
+        - idle
+        - unavailable
+        - unknown
+    yerp_boilerplate_session_status:
+      name: "YERP [boilerplate] Session Status"
+      options:
+        - offline
+        - adminbypass
+        - warmup
+        - standby
+        - spotting
+        - seekinghelp
+        - userexit
+        - userbypass
+        - reset
+        - error
+        - unavailable
+        - unknown
+    yerp_boilerplate_reason_for_deactivation:
+      name: "YERP [boilerplate] Deactivation Reason"
+      options:
+        - offline
+        - adminbypass
+        - warmup
+        - standby
+        - spotting
+        - seekinghelp
+        - userexit
+        - userbypass
+        - reset
+        - error
+        - unavailable
+        - unknown
+
+        # Add a switch for open/close, that checks to see if the door pref is set to inverted
+
+  ##################################################
+  #                                                #
+  #                TEMPLATE SENSORS                #
+  #                                                #
+  #  Checks with the open/close preference, and    #
+  #  will trigger warmup or user exit accordingly  #
+  #                                                #
+  ##################################################
+
+  template:
+    sensor:
+      # - name: "YERP [boilerplate] this Session Duration"
+      #   unique_id: yerp_boilerplate_this_session_duation_seconds
+      #   state: >
+      #     {% if states('input_boolean.yerp_boilerplate_this_session_spotting') == 'on' %}
+      #       {% set this_time = ( now().timestamp() | round ) %}
+      #       {% set activation_time = states('input_text.yerp_boilerplate_this_session_activation_timestamp') | round  %}
+      #       {% set duration = this_time - activation_time %}
+      #       {{ duration }}
+      #     {% else %}
+      #     0
+      #     {% endif %}
+
+      # - name: "YERP [boilerplate] this Session Idle Duration"
+      #   unique_id: yerp_boilerplate_this_session_idle_duration_seconds
+      #   state: >
+      #     {% if states('input_boolean.yerp_boilerplate_this_session_spotting') == 'on' %}
+      #       {% set this_idle_now = ( now().timestamp() | round ) %}
+      #       {% set this_idle_last = states('yerp_boilerplate_this_session_idle_start_timestamp') | round  %}
+      #       {% set idle_duration = this_idle_now - this_idle_last %}
+      #       {{ idle_duration }}
+      #     {% else %}
+      #     0
+      #     {% endif %}
+
+      # - name: "YERP [boilerplate] Remaining Time Until Threshold"
+      #   unique_id: yerp_boilerplate_this_session_remaining_time_seconds
+      #   state: >
+      #     {% if states('input_boolean.yerp_boilerplate_this_session_spotting') == 'on' %}
+      #       {% set rem_threshold_seconds = ( states('input_number.yerp_boilerplate_threshold') | round ) %}
+      #       {% set rem_threshold_time = ( now().timestamp() | round ) + rem_threshold_seconds %}
+      #       {% set rem_start_time = states('input_text.yerp_boilerplate_this_session_activation_timestamp') | round  %}
+      #       {% set rem_time = ( rem_start_time ) - ( rem_threshold_time ) | int  %}
+      #       {{ rem_time }}
+      #     {% else %}
+      #     0
+      #     {% endif %}
+
+      - name: "YERP [boilerplate] This Session Percent Completed"
+        unique_id: yerp_boilerplate_this_session_percent_completed
+        state: >
+          {%- if (states('input_boolean.yerp_boilerplate_this_session_spotting') == "off" ) -%}
+            {{ 0 | int(0) }}
+          {%- else -%}        
+            {{
+            (states('input_text.yerp_boilerplate_this_session_this_idle_duration_seconds')|int(0) /
+            states('input_number.yerp_boilerplate_threshold')|int(0) * 100)
+            | round(0)
+            }}
+          {%- endif -%}
+    # - name: "YERP [boilerplate] this Session"
+    #   unique_id: yerp_boilerplate_this_session
+    #   state: "{{ states('input_select.yerp_boilerplate_session_status') }}"
+    #   attributes:
+    #     status: "{{ states('input_select.yerp_boilerplate_session_status') }}"
+    #     activation_time: ""
+    #     deactivation_time: ""
+    #     reason_for_deactivation: ""
+    #     duration: >-
+    #       {%- if (states('input_sensor.yerp_boilerplate_session_status') == 'spotting') -%}
+    #       {{ ( (as_timestamp(now())) - states.this.attributes.activation_time.timestamp() ) | round(0) }}
+    #       {%- else -%}
+    #       0
+    #       {%- endif -%}
+    #     longest_activity_gap: ""
+    #     activity_gap: ""
+    #   activity_gap: >-
+    #     {%- if (states('sensor.yerp_boilerplate_this_session') == 'spotting') -%}
+    #     {{ ( (as_timestamp(now())) - states.this.attributes.activation_time.timestamp() ) | round(0) }}
+    #     {%- else -%}
+    #     {{
+    #     {{ 0 | int(0) }}
+    #     }}
+    #     {%- endif -%}
+    #   last_activity: ""
+    #   progress: ""
+    # progress: >-
+    #   {%- if (states('sensor.yerp_boilerplate_this_session') == 'idle') -%}
+    #   {{ 0 | int(0) }}
+    #   {%- else -%}
+    #   {{
+    #   (states('sensor.yerp_boilerplate_this_session')|int(0) /
+    #   state_attr('sensor.yerp_boilerplate_threshold', 'this_activity_gap')|int(0) * 100)
+    #   | round(0)
+    #   }}
+    #   {%- endif -%}
+    # - name: "YERP [boilerplate] Last Session"
+    #   state: "{{ this.attributes.reason_for_deactivation | default('unknown') }}"
+    #   attributes:
+    #     activation_time: ""
+    #     deactivation_time: ""
+    #     reason_for_deactivation: ""
+    #     duration: ""
+    #     longest_activity_gap: ""
+
+  switch:
+    - platform: template
+      switches:
+        ##############################################
+        #                                            #
+        #                 AREA SWITCH                #
+        #                                            #
+        #  Main power button for the area, adjusts   #
+        #  session status accordingly.               #
+        #                                            #
+        ##############################################
+
+        yerp_boilerplate_gate_adjusted:
+          value_template: >
+            {% if (states('input_boolean.yerp_boilerplate_gate_invert') == 'True') %}
+            "{{ is_state('input_boolean.yerp_boilerplate_gate_status', 'False') }}"
+            {% else %}
+            "{{ is_state('input_boolean.yerp_boilerplate_gate_status', 'True') }}"
+            {% endif %}
+          turn_on:
+            service: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.yerp_boilerplate_gate_adjusted
+          turn_off:
+            service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.yerp_boilerplate_gate_adjusted
+
+  # yerp_boilerplate_area_enabled:
+  # turn_on:
+  #   # set session status to warmup
+  #   - service: input_select.select_option
+  #     target:
+  #       entity_id: input_select.yerp_boilerplate_session_status
+  #     data:
+  #       option: "warmup"
+  # start the warmup timer
+  # - service: timer.start
+  #   data:
+  #     duration: "{{ states('input_number.yerp_boilerplate_warmup') }}"
+  #   target:
+  #     entity_id: timer.yerp_boilerplate_warmup
+
+  # turn_off:
+  #   # set session status to offline
+  #   - service: input_select.select_option
+  #     target:
+  #       entity_id: input_select.yerp_boilerplate_session_status
+  #     data:
+  #       option: "offline"
+
+  # turn off the spotting switch
+  # - service: switch.turn_off
+  #   target:
+  #     entity_id: switch.yerp_boilerplate_this_session_spotting
+
+  ################################################
+  #                                              #
+  #              SPOTTING SWITCH                 #
+  #                                              #
+  #  When a spotting session begins, set the     #
+  #  activation time and the threshold time.     #
+  #                                              #
+  #  When a spotting session ends, record the    #
+  #  session metrics (seekinghelp actions coor-  #
+  #  dinated via blueprint automation)           #
+  #                                              #
+  ################################################
+
+  # yerp_boilerplate_this_session_spotting:
+  # turn_on:
+  #   # set the session start time to now
+  #   service: input_datetime.set_datetime
+  #   target:
+  #     entity_id: input_datetime.yerp_boilerplate_this_spotting_activation_time
+  #   data:
+  #     datetime: "{{ now() }}"
+
+  # turn_off:
+  #   # set the deactivation reason
+  #   - service: input_select.select_option
+  #     target:
+  #       entity_id: input_select.yerp_reason_for_deactivation
+  #     data:
+  #       option: "{{ states('input_select.yerp_boilerplate_session_status') }}"
+
+  # migrate this closing session's start time to last session
+  # - service: input_datetime.set_datetime
+  #   target:
+  #     entity_id: input_datetime.yerp_boilerplate_last_spotting_activation_time
+  #   data:
+  #     datetime: "{{states('input_select.yerp_boilerplate_this_spotting_activation_time')}}"
+
+  # migrate this closing session's finish time to last session
+  # - service: input_datetime.set_datetime
+  #   target:
+  #     entity_id: input_datetime.yerp_boilerplate_last_spotting_deactivation_time
+  #   data:
+  #     datetime: "{{ now() }}"
+
+  # calculate and set the last session length
+  # - service: input_number.set_value
+  #   target:
+  #     entity_id: input_number.yerp_boilerplate_last_session_total_time
+  #   data: >
+  #     {{ ( as_timestamp(states('input_datetime.yerp_boilerplate_last_spotting_activation_time')) | round )
+  #     - ( as_timestamp(states('input_datetime.yerp_boilerplate_last_spotting_deactivation_time')) | round) }}
+
+  # update the last session sensor with these newly updated inputs
+  # - service: homeassistant.update_entity
+  #   data: {}
+  #   target:
+  #     entity_id: sensor.yerp_boilerplate_last_session
+
+  # export this data to the past sessions db
+  # - service: rest_command.update_nocodb_sessions
+  #   data:
+  #     sessionstart: "{{ states('input_datetime.yerp_boilerplate_last_spotting_activation_time') }}"
+  #     sessionend: "{{ states('input_datetime.yerp_boilerplate_last_spotting_deactivation_time') }}"
+  #     sessionlength: "{{ states('input_number.yerp_boilerplate_last_session_total_time') }}"
+  #     longestgap: "123"
+  #     endtrigger: "{{ states('input_select.yerp_reason_for_deactivation')}}"
+  #     falsepositive: "unknown"
+  #     assessedreason: "unknown"
+  #     suppliesused: "unknown"
+  #     calledems: "false"
+  #     area: "boilerplate"
+
+  ################################################
+  #                                              #
+  #              ACTIVITY SWITCH                 #
+  #                                              #
+  # If activity is picked up, this turns on      #
+  # and stays on until that indicator goes idle. #
+  #                                              #
+  ################################################
+
+  # yerp_boilerplate_active:
+  #   turn_on:
+  #     # set the activity indicator to on, which will block the seekinghelp trigger
+  #   - service: input_select.select_option
+  #     target:
+  #       entity_id: input_select.yerp_boilerplate_spotting_status
+  #     data:
+  #       option: "active"
+
+  # turn_off:
+  # set the time for the activity threshold to expire
+  # - service: input_datetime.set_datetime
+  #   target:
+  #     entity_id: input_datetime.yerp_boilerplate_this_spotting_activation_time
+  #   data:
+  #     timestamp: >
+  #       {% set threshold_seconds = ( states('input_number.yerp_boilerplate_threshold') | round ) %}
+  #       {% set threshold_time = ( now().timestamp() | round ) + threshold_seconds %}
+  #       {{ threshold_time }}
+
+  # start the threshold timer
+  # - service: timer.start
+  #   data:
+  #     duration: "{{ states('input_number.yerp_boilerplate_threshold') }}"
+  #   target:
+  #     entity_id: timer.yerp_boilerplate_threshold_countdown
+
+  ##################################################
+  #                                                #
+  #                OPEN/CLOSE SWITCH               #
+  #                                                #
+  #  Checks with the open/close preference, and    #
+  #  will trigger warmup or user exit accordingly  #
+  #                                                #
+  ##################################################
+
+  # If the open/close sensor is changed, do some things.
+
+  # yerp_boilerplate_gate:
+  # value_template: >
+  #   {% if (states('input_boolean.yerp_boilerplate_gate_invert') == 'False') %}
+  #   "{{ is_state('input_boolean.yerp_boilerplate_gate_status', 'True') }}"
+  #   {% elif (states('input_boolean.yerp_boilerplate_gate_invert') == 'True') %}
+  #   "{{ is_state('input_boolean.yerp_boilerplate_gate_status', 'False') }}"
+  #   {% else %}
+  #   "False"
+  #   {% endif %}
+
+  # set the activity indicator to on, which will block the seekinghelp trigger:
+
+  # turn_on:
+  # set the session status to warmup
+  # - service: input_select.select_option
+  #   target:
+  #     entity_id: input_select.yerp_boilerplate_session_status
+  #   data:
+  #     option: "warmup"
+  # set the warmup timer and start it
+  # - service: timer.start
+  #   data:
+  #     duration: "{{ states('input_number.yerp_boilerplate_warmup') }}"
+  #   target:
+  #     entity_id: timer.yerp_boilerplate_warmup
+
+  # turn_off:
+  # set the session status to userexit
+  # - service: input_select.select_option
+  #   target:
+  #     entity_id: input_select.yerp_boilerplate_session_status
+  #   data:
+  #     option: "userexit"
+  # turn off the spotting switch
+  # - service: switch.turn_off
+  #   target:
+  #     entity_id: switch.yerp_boilerplate_this_session_spotting
+  # turn off the threshold timer
+  # - service: timer.cancel
+  #   target:
+  #     entity_id: timer.yerp_boilerplate_threshold_countdown

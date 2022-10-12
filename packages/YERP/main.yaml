@@ -1,0 +1,55 @@
+yerp_main:
+  shell_command:
+    yerp_copy_boilerplate: '/bin/bash /config/scripts/boilerplate.sh {{ states("input_text.yerp_new_area") }}'
+  # input_text:
+  #   yerp_new_area:
+  #     name: New Area id
+  #     pattern: "^[a-z0-9_]+$"
+  sensor:
+    - platform: time_date
+      display_options:
+        - "time"
+        - "date"
+        - "date_time"
+        - "date_time_utc"
+        - "date_time_iso"
+        - "time_date"
+        - "time_utc"
+  template:
+    - sensor:
+        - name: "[YERP] Now Timestamp"
+          state: "{{ (as_timestamp(now())|round(0)) }}"
+  input_number:
+    yerp_warmup_time:
+      name: "YERP [Overall] Threshold"
+      icon: mdi:timer
+      initial: 10
+      min: 1
+      max: 30
+      step:
+        1
+
+        ################################################
+        #                                              #
+        #              DATABASE REPORTING              #
+        #                                              #
+        ################################################
+
+  rest_command:
+    update_nocodb_sessions:
+      url: "https://nocodb.local.flufftronix.com/api/v1/YERP-Metrics/Session-Reports"
+      method: POST
+      headers:
+        authorization: !secret nocodb_token
+        accept: "application/json"
+      payload: >
+        '{
+        "Session Start": "{{ sessionstart }}",
+        "Session End": "{{ sessionend }}",
+        "Session Length": {{ sessionlength }},
+        "Longest Gap": {{ longestgap }},
+        "End Trigger": "{{ endtrigger }}",
+        "Area": "{{ area }}"
+        }'
+      content_type: "application/json"
+      verify_ssl: true
