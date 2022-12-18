@@ -1,752 +1,1058 @@
-- id: '1664921368731'
-  alias: YERP [boilerplate] Runtime
+- id: "1669689949612"
+  alias: Update a Note Test
+  description: ""
   trigger:
-  - platform: event
-    event_type: timer.finished
-    event_data:
-      entity_id: timer.yerp_boilerplate_threshold_countdown
-    alias: Threshold Expires
-    id: Threshold Expires
-  - platform: event
-    event_type: timer.finished
-    event_data:
-      entity_id: timer.yerp_boilerplate_warmup
-    alias: Warmup Expires
-    id: Warmup Expires
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_boilerplate_area_enabled
-    alias: Area Enabled/Disabled
-    id: Area Enabled/Disabled
-  - platform: state
-    entity_id:
-    - input_select.yerp_boilerplate_spotting_status
-    alias: Spotting Status Changes
-    id: Spotting Status Changes
-  - platform: state
-    entity_id:
-    - binary_sensor.lumi_lumi_motion_ac02_iaszone
-    alias: Activity Device State Changes
-    id: Activity Device State Changes
-    enabled: false
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_boilerplate_this_session_spotting
-    id: This Session Spotting Changes
-    alias: This Session Spotting Changes
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_boilerplate_gate_status
-    id: Gate Status Changes
-    alias: Gate Status Changes
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_boilerplate_session_active
-    alias: Activity Entity State Changes
-    id: Activity Entity State Changes
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_boilerplate_session_completed
-    alias: Session Completed
-    id: Session Completed
-    to: 'on'
-  - platform: homeassistant
-    event: start
-    id: HA Starts
+    - platform: webhook
+      webhook_id: 98ee6f63-5e1a-42eb-a822-f5cb98eb8aee
+  action:
+    - service: rest_command.update_note_sensor
+      data:
+        state: "{{ trigger.query.state }}"
+        note: "{{ trigger.query.note }}"
+- id: "2665515881085"
+  alias: YERP [Boilerplate] Wellness Check Prompt
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      to: elevated
+      id: Elevated
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      to: seekinghelp
+      id: Seeking Help
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      id: Seeking Help Ends
+      from: seekinghelp
   condition: []
   action:
-  - if:
-    - condition: trigger
-      id: Activity Device State Changes
-    then:
-    - choose:
-      - conditions:
+    - if:
+        - condition: trigger
+          id: Seeking Help
+      then:
+        - service: notify.twilio_sms
+          data:
+            message:
+              "{{ (states('input_number.yerp_boilerplate_failsafe_threshold') | int(0)
+              | round ) }} seconds have passed, unresponded, since a wellness check was
+              prompted for the {{ states('input_text.yerp_boilerplate_friendly_room_name')
+              }}"
+            target:
+              - !secret seeking_help_number
+        - service: media_player.play_media
+          target:
+            entity_id: media_player.vlc_telnet
+          data:
+            media_content_id: media-source://media_source/local/toxic-bardcore.mp3
+            media_content_type: audio/mpeg
+          metadata:
+            title: toxic-bardcore.mp3
+            thumbnail:
+            media_class: music
+            children_media_class:
+            navigateIds:
+              - {}
+              - media_content_type: app
+                media_content_id: media-source://media_source
+    - if:
+        - condition: trigger
+          id: Elevated
+      then:
+        - service: tts.picotts_remote_say
+          data:
+            entity_id: media_player.vlc_telnet
+            message: Please check on the bathroom.
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id:
+              - input_boolean.yerp_boilerplate_elevated_countdown
+        - service: timer.start
+          data:
+            duration: "{{ states('input_number.yerp_boilerplate_failsafe_threshold') }}"
+          target:
+            entity_id: timer.yerp_boilerplate_failsafe_timer
+    - if:
+        - condition: trigger
+          id: Seeking Help Ends
+      then:
+        - service: media_player.media_stop
+          data: {}
+          target:
+            entity_id: media_player.vlc_telnet
+  mode: single
+- id: "2665516822820"
+  alias: YERP [Boilerplate] Timer Actions
+  description: ""
+  trigger:
+    - platform: event
+      event_type: timer.started
+      event_data:
+        entity_id: timer.yerp_boilerplate_warmup
+      id: Warmup Begins
+      alias: Warmup Begins
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_warmup
+      id: Warmup Ends
+      alias: Warmup Ends
+    - platform: event
+      event_type: timer.cancelled
+      event_data:
+        entity_id: timer.yerp_boilerplate_warmup
+      id: Warmup is Canceled
+      alias: Warmup Canceled
+    - platform: event
+      event_type: timer.started
+      event_data:
+        entity_id: timer.yerp_boilerplate_threshold_countdown
+      id: Spotting Begins
+      alias: Spotting Begins
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_threshold_countdown
+      id: Spotting Ends
+      alias: Spotting Ends
+    - platform: event
+      event_type: timer.cancelled
+      event_data:
+        entity_id: timer.yerp_boilerplate_threshold_countdown
+      id: Spotting is Canceled
+      alias: Spotting Canceled
+    - platform: event
+      event_type: timer.started
+      event_data:
+        entity_id: timer.yerp_boilerplate_session_duration_limit
+      id: Duration Limit Begins
+      alias: Duration Limit Begins
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_session_duration_limit
+      id: Duration Limit Ends
+      alias: Duration Limit Ends
+    - platform: event
+      event_type: timer.cancelled
+      event_data:
+        entity_id: timer.yerp_boilerplate_session_duration_limit
+      id: Duration Limit is Canceled
+      alias: Duration Limit Canceled
+    - platform: event
+      event_type: timer.started
+      event_data:
+        entity_id: timer.yerp_boilerplate_failsafe_timer
+      id: Elevated Begins
+      alias: Elevated Begins
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_failsafe_timer
+      id: Elevated Ends
+      alias: Elevated Ends
+    - platform: event
+      event_type: timer.cancelled
+      event_data:
+        entity_id: timer.yerp_boilerplate_failsafe_timer
+      id: Elevated Canceled
+      alias: Elevated Canceled
+  condition: []
+  action:
+    - if:
+        - condition: trigger
+          id: Warmup Begins
+      then:
+        - service: light.turn_on
+          data:
+            brightness_pct: 100
+            flash: short
+            color_name: green
+          target:
+            area_id: bathroom
+    - if:
+        - condition: trigger
+          id: Warmup Ends
+      then:
+        - service: light.turn_on
+          data:
+            brightness_pct: 1
+            rgb_color:
+              - 0
+              - 6
+              - 179
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+    - if:
+        - condition: trigger
+          id: Spotting Begins
+      then:
+        - service: light.turn_on
+          data:
+            rgb_color:
+              - 38
+              - 128
+              - 0
+            brightness_pct: 100
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+        - delay:
+            seconds:
+              "{{ ( states('input_number.yerp_boilerplate_threshold') | int(0) * 0.75
+              ) }}"
+        - service: light.turn_on
+          data:
+            rgb_color:
+              - 255
+              - 194
+              - 26
+            brightness_pct: 25
+            transition: 5
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+        - delay:
+            seconds:
+              "{{ ( states('input_number.yerp_boilerplate_threshold') | int(0) / 12
+              ) }}"
+        - service: light.turn_on
+          data:
+            rgb_color:
+              - 255
+              - 0
+              - 0
+            brightness_pct: 25
+            transition: 5
+            flash: long
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+        - delay:
+            seconds:
+              "{{ ( states('input_number.yerp_boilerplate_threshold') | int(0) / 12
+              ) }}"
+    - if:
+        - condition: trigger
+          id: Spotting Ends
+      then:
+        - service: light.turn_on
+          data:
+            brightness_pct: 100
+            transition: 5
+            flash: short
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+    - if:
+        - condition: trigger
+          id: Duration Limit Ends
+      then:
+        - service: media_player.play_media
+          target:
+            entity_id: media_player.vlc_telnet
+          data:
+            media_content_id: media-source://media_source/local/deskbell.mp3
+            media_content_type: audio/mpeg
+          metadata:
+            title: deskbell.mp3
+            thumbnail:
+            media_class: music
+            children_media_class:
+            navigateIds:
+              - {}
+              - media_content_type: app
+                media_content_id: media-source://media_source
+    - if:
+        - condition: trigger
+          id: Elevated Begins
+      then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_failsafe_countdown
+    - if:
+        - condition: trigger
+          id: Elevated Ends
+      then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_failsafe
+        - service: input_select.select_option
+          data:
+            option: seekinghelp
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+  mode: restart
+- id: "2665692336003"
+  alias: YERP [Boilerplate] Visitor Button Presses
+  description: ""
+  trigger:
+    - platform: device
+      domain: mqtt
+      device_id: 066a95fd8c0951aa26e267cf98abcb53
+      type: action
+      subtype: single
+      discovery_id: 0x00158d000282cf6d action_single
+      alias: Bypass Button - Single
+      id: Bypass Button - Single
+    - platform: device
+      domain: mqtt
+      device_id: 91c2bf4ec4ca6109eacac1a6418bea13
+      type: action
+      subtype: single
+      discovery_id: 0x00124b0022e96283 action_single
+      id: Activity Button - Single
+      alias: Activity Button - Single
+    - platform: device
+      domain: mqtt
+      device_id: 066a95fd8c0951aa26e267cf98abcb53
+      type: action
+      subtype: hold
+      discovery_id: 0x00158d000282cf6d action_hold
+      id: Bypass Button - Hold
+      alias: Bypass Button - Hold
+    - platform: device
+      domain: mqtt
+      device_id: 91c2bf4ec4ca6109eacac1a6418bea13
+      type: action
+      subtype: double
+      discovery_id: 0x00124b0022e96283 action_double
+      id: Activity Button - Double
+      alias: Activity Button - Double
+  condition:
+    - condition: or
+      conditions:
         - condition: state
-          entity_id: binary_sensor.lumi_lumi_motion_ac02_iaszone
-          state: 'on'
-        sequence:
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: warmup
+        - condition: state
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: standby
+        - condition: state
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: spotting
+  action:
+    - if:
+        - condition: or
+          conditions:
+            - condition: trigger
+              id: Bypass Button - Single
+            - condition: trigger
+              id: Bypass Button - Hold
+          alias: Bypass Button Single or Hold
+      then:
+        - service: input_boolean.toggle
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_spotting_bypass
+        - service: input_select.select_option
+          data:
+            option: userbypass
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+        - service: logbook.log
+          data:
+            name: Visitor Button Press
+            message: Bypass button pressed
+        - service: light.turn_on
+          data:
+            color_name: purple
+            brightness_pct: 25
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+    - if:
+        - condition: or
+          conditions:
+            - condition: trigger
+              id: Activity Button - Single
+            - condition: trigger
+              id: Activity Button - Double
+          alias: Activity Button Single or Hold
+      then:
         - service: input_boolean.turn_on
           data: {}
           target:
             entity_id: input_boolean.yerp_boilerplate_session_active
-        - service: input_select.select_option
-          target:
-            entity_id: input_select.yerp_boilerplate_spotting_status
-          data:
-            option: active
-      - conditions:
-        - condition: state
-          entity_id: binary_sensor.lumi_lumi_motion_ac02_iaszone
-          state: 'off'
-        sequence:
+        - delay:
+            seconds: 5
         - service: input_boolean.turn_off
           data: {}
           target:
             entity_id: input_boolean.yerp_boilerplate_session_active
-        - service: input_select.select_option
+        - service: logbook.log
+          data:
+            name: Visitor Button Press
+            message: Bypass button pressed
+        - service: light.turn_on
+          data:
+            color_name: pink
           target:
-            entity_id: input_select.yerp_boilerplate_spotting_status
-          data:
-            option: idle
-    alias: Activity from device; relay to boolean
-    enabled: false
-  - if:
-    - condition: state
-      entity_id: input_boolean.yerp_boilerplate_area_enabled
-      state: 'on'
-    then:
+            entity_id: light.yerp_boilerplate_bulb
+  mode: restart
+- id: "1664921368731"
+  alias: YERP [Boilerplate] Spotting Flow
+  description: ""
+  trigger:
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_threshold_countdown
+      alias: Threshold Expires
+      id: Threshold Expires
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_warmup
+      alias: Warmup Expires
+      id: Warmup Expires
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_area_enabled
+      alias: Area Enabled/Disabled
+      id: Area Enabled/Disabled
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_spotting_status
+      alias: Spotting Status Changes
+      id: Spotting Status Changes
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_this_session_spotting
+      id: This Session Spotting Changes
+      alias: This Session Spotting Changes
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_gate_status
+      id: Gate Status Changes
+      alias: Gate Status Changes
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_session_active
+      alias: Activity Entity State Changes
+      id: Activity Entity State Changes
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_session_completed
+      alias: Session Completed
+      id: Session Completed
+      to: "on"
+    - platform: homeassistant
+      event: start
+      id: HA Starts
+    - platform: state
+      entity_id:
+        - input_boolean.yerp_boilerplate_spotting_bypass
+      to: "on"
+      alias: Spotting Bypass
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      id: Elevated
+      to: elevated
+  condition: []
+  action:
     - if:
-      - condition: or
-        conditions:
         - condition: state
-          entity_id: input_select.yerp_boilerplate_session_status
-          state: offline
-        - condition: state
-          entity_id: input_select.yerp_boilerplate_session_status
-          state: warmup
+          entity_id: input_boolean.yerp_boilerplate_area_enabled
+          state: "on"
       then:
-      - service: input_select.select_option
-        data:
-          option: online
-        target:
-          entity_id: input_select.yerp_boilerplate_area_status
-      - if:
+        - if:
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: input_select.yerp_boilerplate_session_status
+                  state: offline
+                - condition: state
+                  entity_id: input_select.yerp_boilerplate_session_status
+                  state: warmup
+          then:
+            - service: input_select.select_option
+              data:
+                option: online
+              target:
+                entity_id: input_select.yerp_boilerplate_area_status
+            - service: input_select.select_option
+              data:
+                option: warmup
+              target:
+                entity_id: input_select.yerp_boilerplate_session_status
+            - if:
+                - condition: state
+                  entity_id: input_boolean.yerp_boilerplate_gate_status
+                  state: "on"
+                  alias: Gated Status is ready
+                - condition: or
+                  conditions:
+                    - condition: trigger
+                      id: Area Enabled/Disabled
+                    - condition: trigger
+                      id: Gate Status Changes
+              then:
+                - service: timer.start
+                  data:
+                    duration: "{{ states('input_number.yerp_boilerplate_warmup') }}"
+                  target:
+                    entity_id: timer.yerp_boilerplate_warmup
+              else: []
+          alias: If Session is Offline or Warmup
+        - if:
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: spotting
+          then:
+            - if:
+                - condition: trigger
+                  id: Threshold Expires
+              then:
+                - service: input_boolean.turn_on
+                  data: {}
+                  target:
+                    entity_id: input_boolean.yerp_boilerplate_failsafe_countdown
+                - service: input_select.select_option
+                  data:
+                    option: elevated
+                  target:
+                    entity_id:
+                      - input_select.yerp_boilerplate_session_status
+              alias: If threshold expires, mark session as elevated
+            - if:
+                - condition: trigger
+                  id: Activity Entity State Changes
+              then:
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: input_boolean.yerp_boilerplate_session_active
+                          state: "on"
+                          alias: If activity turned on
+                      sequence:
+                        - service: timer.cancel
+                          target:
+                            entity_id: timer.yerp_boilerplate_threshold_countdown
+                          data: {}
+                        - service: input_text.set_value
+                          data:
+                            value: "0"
+                          target:
+                            entity_id: input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
+                    - conditions:
+                        - condition: state
+                          entity_id: input_boolean.yerp_boilerplate_session_active
+                          state: "off"
+                          alias: If activity turned off
+                      sequence:
+                        - service: timer.start
+                          data:
+                            duration: "{{ states('input_number.yerp_boilerplate_threshold') }}"
+                          target:
+                            entity_id: timer.yerp_boilerplate_threshold_countdown
+                        - if:
+                            - condition: state
+                              entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                              state: "on"
+                          then:
+                            - service: input_text.set_value
+                              data:
+                                value: "{{ now().timestamp() | round }}"
+                              target:
+                                entity_id: input_text.yerp_boilerplate_this_session_idle_start_timestamp
+                  alias: Pick Activity on or off
+              alias: If Activity Boolean changes
+            - if:
+                - condition: trigger
+                  id: Gate Status Changes
+                - condition: state
+                  entity_id: input_boolean.yerp_boilerplate_gate_status
+                  state: "off"
+              then:
+                - service: input_boolean.turn_on
+                  data: {}
+                  target:
+                    entity_id: input_boolean.yerp_boilerplate_session_completed
+                - service: input_boolean.turn_off
+                  data: {}
+                  target:
+                    entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                - service: input_select.select_option
+                  data:
+                    option: userexit
+                  target:
+                    entity_id: input_select.yerp_boilerplate_session_status
+              alias: If open/close triggers, set session to userexit
+          alias: If Session is Spotting
+        - if:
+            - condition: trigger
+              id: Warmup Expires
+          then:
+            - if:
+                - condition: state
+                  entity_id: input_select.yerp_boilerplate_activity_status
+                  state: active
+              then:
+                - wait_for_trigger:
+                    - platform: state
+                      entity_id:
+                        - input_select.yerp_boilerplate_activity_status
+                      to: idle
+                  alias: Wait until idle
+              else: []
+              alias: Check to see if activity status is on
+            - service: input_select.select_option
+              data:
+                option: standby
+              target:
+                entity_id: input_select.yerp_boilerplate_session_status
+          alias: If Warmup Timer Expires, Advance
+        - if:
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: warmup
+              alias: If Warmup
+          then:
+            - if:
+                - condition: state
+                  entity_id: input_boolean.yerp_boilerplate_gate_adjusted
+                  state: "on"
+              then:
+                - service: timer.start
+                  data:
+                    duration: "{{ states('input_number.yerp_boilerplate_warmup') | int(0) }}"
+                  target:
+                    entity_id: timer.yerp_boilerplate_warmup
+          alias: If Session is Warmup
+        - if:
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: standby
+          then:
+            - if:
+                - condition: trigger
+                  id: Activity Entity State Changes
+              then:
+                - if:
+                    - condition: state
+                      entity_id: input_boolean.yerp_boilerplate_session_active
+                      state: "on"
+                  then:
+                    - service: input_select.select_option
+                      data:
+                        option: spotting
+                      target:
+                        entity_id: input_select.yerp_boilerplate_session_status
+                    - service: input_boolean.turn_on
+                      data: {}
+                      target:
+                        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                    - service: input_text.set_value
+                      target:
+                        entity_id: input_text.yerp_boilerplate_this_session_activation_timestamp
+                      data:
+                        value: "{{ now().timestamp() | round }}"
+                    - service: input_text.set_value
+                      target:
+                        entity_id: input_text.yerp_boilerplate_this_session_duration_seconds
+                      data:
+                        value: "0"
+                    - service: script.yerp_boilerplate_update_sensors_every_second_while_spotting
+                      data: {}
+            - if:
+                - condition: trigger
+                  id: Gate Status Changes
+                - condition: state
+                  entity_id: input_boolean.yerp_boilerplate_gate_status
+                  state: "off"
+              then:
+                - service: input_select.select_option
+                  data:
+                    option: warmup
+                  target:
+                    entity_id: input_select.yerp_boilerplate_session_status
+          alias: If Session is Standby
+        - if:
+            - condition: trigger
+              id: Gate Status Changes
+          then:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: input_boolean.yerp_boilerplate_gate_status
+                      state: "on"
+                      alias: If open/closed status is on, go to warmup
+                  sequence:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.yerp_boilerplate_session_status
+                      data:
+                        option: warmup
+                    - service: timer.start
+                      data:
+                        duration: "{{ states('input_number.yerp_boilerplate_warmup') }}"
+                      target:
+                        entity_id: timer.yerp_boilerplate_warmup
+                - conditions:
+                    - condition: state
+                      entity_id: input_boolean.yerp_boilerplate_gate_status
+                      state: "off"
+                      alias: If open/closed status is off
+                    - condition: state
+                      entity_id: input_select.yerp_boilerplate_session_status
+                      state: spotting
+                      alias: If Spotting
+                  sequence:
+                    - service: timer.cancel
+                      target:
+                        entity_id: timer.yerp_boilerplate_warmup
+                      data: {}
+                    - service: input_boolean.turn_on
+                      data: {}
+                      target:
+                        entity_id: input_boolean.yerp_boilerplate_session_completed
+                      alias: Mark Session as Completed
+          alias: If Gate status changes
+        - if:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_spotting_bypass
+              state: "on"
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: userbypass
+          then:
+            - if:
+                - condition: state
+                  entity_id: timer.yerp_boilerplate_threshold_countdown
+                  state: active
+              then:
+                - service: timer.cancel
+                  data: {}
+                  target:
+                    entity_id: timer.yerp_boilerplate_threshold_countdown
+          alias: If Visitor Activates Bypass
+      alias: Area is On and Completed is Off
+    - if:
         - condition: state
-          entity_id: input_boolean.yerp_boilerplate_gate_status
-          state: 'on'
-          alias: Gated Status is ready
-        - condition: or
-          conditions:
-          - condition: trigger
-            id: Area Enabled/Disabled
-          - condition: trigger
-            id: Gate Status Changes
-        then:
+          entity_id: input_boolean.yerp_boilerplate_area_enabled
+          state: "off"
+      then:
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_boilerplate_spotting_bypass
         - service: input_select.select_option
-          data:
-            option: warmup
           target:
             entity_id: input_select.yerp_boilerplate_session_status
-        - service: timer.start
           data:
-            duration: '{{ states(''input_number.yerp_boilerplate_warmup'') }}'
+            option: offline
+        - service: input_boolean.turn_off
           target:
-            entity_id: timer.yerp_boilerplate_warmup
-      alias: If Session is Offline or Warmup
+            entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+          data: {}
+        - service: input_select.select_option
+          data:
+            option: offline
+          target:
+            entity_id: input_select.yerp_boilerplate_area_status
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id:
+              - timer.yerp_boilerplate_warmup
+              - timer.yerp_boilerplate_threshold_countdown
+              - timer.yerp_boilerplate_session_duration_limit
+        - service: input_select.select_option
+          data:
+            option: offline
+          target:
+            entity_id: input_select.yerp_boilerplate_reason_for_deactivation
+        - service: light.turn_off
+          data: {}
+          target:
+            entity_id: light.yerp_boilerplate_bulb
+      alias: Area is Off
     - if:
-      - condition: state
-        entity_id: input_select.yerp_boilerplate_session_status
-        state: spotting
+        - condition: trigger
+          id: Session Completed
       then:
-      - if:
-        - condition: trigger
-          id: Threshold Expires
-        then:
-        - service: input_boolean.turn_on
+        - service: timer.cancel
           data: {}
           target:
-            entity_id: input_boolean.yerp_boilerplate_session_completed
-        alias: If threshold expires, mark session as completed
-      - if:
-        - condition: trigger
-          id: Activity Entity State Changes
-        then:
-        - choose:
-          - conditions:
-            - condition: state
-              entity_id: input_boolean.yerp_boilerplate_session_active
-              state: 'on'
-              alias: If activity turned on
-            sequence:
-            - service: timer.cancel
-              target:
-                entity_id: timer.yerp_boilerplate_threshold_countdown
-              data: {}
-            - service: input_text.set_value
-              data:
-                value: '0'
-              target:
-                entity_id: input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
-          - conditions:
-            - condition: state
-              entity_id: input_boolean.yerp_boilerplate_session_active
-              state: 'off'
-              alias: If activity turned off
-            sequence:
-            - service: timer.start
-              data:
-                duration: '{{ states(''input_number.yerp_boilerplate_threshold'')
-                  }}'
-              target:
-                entity_id: timer.yerp_boilerplate_threshold_countdown
-            - if:
-              - condition: state
-                entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-                state: 'on'
-              then:
-              - service: input_text.set_value
-                data:
-                  value: '{{ now().timestamp() | round }}'
-                target:
-                  entity_id: input_text.yerp_boilerplate_this_session_idle_start_timestamp
-          alias: Pick Activity on or off
-        alias: If Activity Boolean changes
-      - if:
-        - condition: trigger
-          id: Gate Status Changes
-        - condition: state
-          entity_id: input_boolean.yerp_boilerplate_gate_status
-          state: 'off'
-        then:
-        - service: input_boolean.turn_on
-          data: {}
+            entity_id:
+              - timer.yerp_boilerplate_threshold_countdown
+              - timer.yerp_boilerplate_warmup
+          alias: Cancel out the timers
+        - service: input_text.set_value
+          data:
+            value:
+              "{{ states('input_text.yerp_boilerplate_this_session_activation_timestamp')
+              | int(0) | timestamp_custom('%Y-%m-%dT%H:%M:%S%z') }}"
           target:
-            entity_id: input_boolean.yerp_boilerplate_session_completed
+            entity_id: input_text.yerp_boilerplate_last_session_activation_datetime
+          alias: Set Last Session's activation time
+        - service: input_text.set_value
+          data:
+            value:
+              "{{ now().timestamp() | int(0) | timestamp_custom('%Y-%m-%dT%H:%M:%S%z')
+              }}"
+          target:
+            entity_id: input_text.yerp_boilerplate_last_spotting_deactivation_datetime
+          alias: Set Last Session's completed time
+        - service: input_text.set_value
+          data:
+            value:
+              "{{ states('input_text.yerp_boilerplate_this_session_max_idle_duration_seconds')
+              }}"
+          target:
+            entity_id: input_text.yerp_boilerplate_last_session_max_idle_duration_seconds
+          alias: Set Last Session's Max Idle
+        - service: input_text.set_value
+          data:
+            value:
+              "{{ states('input_text.yerp_boilerplate_this_session_duration_seconds')
+              }}"
+          target:
+            entity_id: input_text.yerp_boilerplate_last_session_duration_seconds
+          alias: Set Last Session's Duration
         - service: input_boolean.turn_off
           data: {}
           target:
             entity_id: input_boolean.yerp_boilerplate_this_session_spotting
         - service: input_select.select_option
           data:
-            option: userexit
+            option: "{{ states('input_select.yerp_boilerplate_session_status') }}"
           target:
-            entity_id: input_select.yerp_boilerplate_session_status
-        alias: If open/close triggers, set session to userexit
-      alias: If Session is Spotting
-    - if:
-      - condition: state
-        entity_id: input_select.yerp_boilerplate_session_status
-        state: warmup
-        alias: If Warmup
-      then:
-      - if:
-        - condition: trigger
-          id: Warmup Expires
-        then:
-        - if:
-          - condition: state
-            entity_id: input_select.yerp_boilerplate_activity_status
-            state: active
-          then:
-          - wait_for_trigger:
-            - platform: state
-              entity_id:
-              - input_select.yerp_boilerplate_activity_status
-              to: idle
-            alias: Wait until idle
-          else: []
-          alias: Check to see if activity status is on
-        - service: input_select.select_option
+            entity_id: input_select.yerp_boilerplate_reason_for_deactivation
+        - service: input_text.set_value
           data:
-            option: standby
+            value:
+              Session started in {{states('input_text.yerp_boilerplate_friendly_room_name')}}
+              at {{states('input_text.yerp_boilerplate_last_session_activation_datetime')}}
+              ended, because {{states('input_select.yerp_boilerplate_reason_for_deactivation')}}.
+              Max idle was {{states('input_text.yerp_boilerplate_last_session_max_idle_duration_seconds')}}
+              seconds.
           target:
-            entity_id: input_select.yerp_boilerplate_session_status
-        alias: If Warmup Expires, Advance
-      alias: If Session is Warmup
+            entity_id: input_text.yerp_session_log
+        - service: rest_command.update_nocodb_sessions
+          continue_on_error: true
+          data:
+            sessionstart:
+              "{{ states('input_text.yerp_boilerplate_last_session_activation_datetime')
+              }}"
+            sessionend:
+              "{{ states('input_text.yerp_boilerplate_last_spotting_deactivation_datetime')
+              }}"
+            sessionlength:
+              "{{ states('input_text.yerp_boilerplate_last_session_duration_seconds')
+              }}"
+            longestgap:
+              "{{ states('input_text.yerp_boilerplate_last_session_max_idle_duration_seconds')
+              }}"
+            endtrigger: "{{ states('input_select.yerp_reason_for_deactivation') }}"
+            suppliesused: ""
+            calledems: ""
+            area: boilerplate
+          alias: Send Report to DB
+          enabled: false
+        - service: script.toggle
+          data: {}
+          target:
+            entity_id: script.yerp_boilerplate_reset_session_automatic
+          enabled: true
+      alias: Session Completed
     - if:
-      - condition: state
-        entity_id: input_select.yerp_boilerplate_session_status
-        state: standby
-      then:
-      - if:
-        - condition: trigger
-          id: Activity Entity State Changes
-        then:
-        - if:
-          - condition: state
-            entity_id: input_boolean.yerp_boilerplate_session_active
-            state: 'on'
-          then:
-          - service: input_select.select_option
-            data:
-              option: spotting
-            target:
-              entity_id: input_select.yerp_boilerplate_session_status
-          - service: input_boolean.turn_on
-            data: {}
-            target:
-              entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-          - service: input_text.set_value
-            target:
-              entity_id: input_text.yerp_boilerplate_this_session_activation_timestamp
-            data:
-              value: '{{ now().timestamp() | round }}'
-          - service: input_text.set_value
-            target:
-              entity_id: input_text.yerp_boilerplate_this_session_duration_seconds
-            data:
-              value: '0'
-          - service: script.yerp_boilerplate_update_sensors_every_second_while_spotting
-            data: {}
-      - if:
         - condition: trigger
           id: Gate Status Changes
-        - condition: state
-          entity_id: input_boolean.yerp_boilerplate_gate_status
-          state: 'off'
-        then:
-        - service: input_select.select_option
-          data:
-            option: warmup
-          target:
-            entity_id: input_select.yerp_boilerplate_session_status
-      alias: If Session is Standby
-    - if:
-      - condition: trigger
-        id: Gate Status Changes
       then:
-      - choose:
-        - conditions:
-          - condition: state
-            entity_id: input_boolean.yerp_boilerplate_gate_status
-            state: 'on'
-            alias: If open/closed status is on, go to warmup
-          sequence:
-          - service: input_select.select_option
-            target:
-              entity_id: input_select.yerp_boilerplate_session_status
-            data:
-              option: warmup
-          - service: timer.start
-            data:
-              duration: '{{ states(''input_number.yerp_boilerplate_warmup'') }}'
-            target:
-              entity_id: timer.yerp_boilerplate_warmup
-        - conditions:
-          - condition: state
-            entity_id: input_boolean.yerp_boilerplate_gate_status
-            state: 'off'
-            alias: If open/closed status is off
-          - condition: state
-            entity_id: input_select.yerp_boilerplate_session_status
-            state: spotting
-            alias: If Spotting
-          sequence:
-          - service: timer.cancel
-            target:
-              entity_id: timer.yerp_boilerplate_warmup
-            data: {}
-          - service: input_boolean.turn_on
-            data: {}
-            target:
-              entity_id: input_boolean.yerp_boilerplate_session_completed
-            alias: Mark Session as Completed
-      alias: If Gate status changes
-    alias: Area is On and Completed is Off
-  - if:
-    - condition: state
-      entity_id: input_boolean.yerp_boilerplate_area_enabled
-      state: 'off'
-    then:
-    - service: input_select.select_option
-      target:
-        entity_id: input_select.yerp_boilerplate_session_status
-      data:
-        option: offline
-    - service: input_boolean.turn_off
-      target:
-        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-      data: {}
-    - service: input_select.select_option
-      data:
-        option: offline
-      target:
-        entity_id: input_select.yerp_boilerplate_area_status
-    - service: timer.cancel
-      data: {}
-      target:
-        entity_id:
-        - timer.yerp_boilerplate_warmup
-        - timer.yerp_boilerplate_threshold_countdown
-    - service: input_select.select_option
-      data:
-        option: offline
-      target:
-        entity_id: input_select.yerp_boilerplate_reason_for_deactivation
-    alias: Area is Off
-  - if:
-    - condition: trigger
-      id: Session Completed
-    then:
-    - service: timer.cancel
-      data: {}
-      target:
-        entity_id:
-        - timer.yerp_boilerplate_threshold_countdown
-        - timer.yerp_boilerplate_warmup
-      alias: Cancel out the timers
-    - service: input_text.set_value
-      data:
-        value: '{{ states(''input_text.yerp_boilerplate_this_session_activation_timestamp'')
-          | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'') }}'
-      target:
-        entity_id: input_text.yerp_boilerplate_last_session_activation_datetime
-      alias: Set Last Session's activation time
-    - service: input_text.set_value
-      data:
-        value: '{{ now().timestamp() | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'')
-          }}'
-      target:
-        entity_id: input_text.yerp_boilerplate_last_spotting_deactivation_datetime
-      alias: Set Last Session's completed time
-    - service: input_text.set_value
-      data:
-        value: '{{ states(''input_text.yerp_boilerplate_this_session_max_idle_duration_seconds'')
-          }}'
-      target:
-        entity_id: input_text.yerp_boilerplate_last_session_max_idle_duration_seconds
-      alias: Set Last Session's Max Idle
-    - service: input_text.set_value
-      data:
-        value: '{{ states(''input_text.yerp_boilerplate_this_session_duration_seconds'')
-          }}'
-      target:
-        entity_id: input_text.yerp_boilerplate_last_session_duration_seconds
-      alias: Set Last Session's Duration
-    - service: input_boolean.turn_off
-      data: {}
-      target:
-        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-    - service: input_select.select_option
-      data:
-        option: '{{ states(''input_select.yerp_boilerplate_session_status'') }}'
-      target:
-        entity_id: input_select.yerp_boilerplate_reason_for_deactivation
-    - service: rest_command.update_nocodb_sessions
-      continue_on_error: true
-      data:
-        sessionstart: '{{ states(''input_text.yerp_boilerplate_last_session_activation_datetime'')
-          }}'
-        sessionend: '{{ states(''input_text.yerp_boilerplate_last_spotting_deactivation_datetime'')
-          }}'
-        sessionlength: '{{ states(''input_text.yerp_boilerplate_last_session_duration_seconds'')
-          }}'
-        longestgap: '{{ states(''input_text.yerp_boilerplate_last_session_max_idle_duration_seconds'')
-          }}'
-        endtrigger: '{{ states(''input_select.yerp_reason_for_deactivation'') }}'
-        suppliesused: ''
-        calledems: ''
-        area: boilerplate
-      alias: Send Report to DB
+        - if:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_gate_status
+              state: "off"
+              alias: If Status is Off
+          then:
+            - if:
+                - condition: state
+                  entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                  state: "on"
+              then:
+                - service: timer.cancel
+                  data: {}
+                  target:
+                    entity_id:
+                      - timer.yerp_boilerplate_threshold_countdown
+                      - timer.yerp_boilerplate_warmup
+                - service: input_boolean.turn_on
+                  data: {}
+                  target:
+                    entity_id: input_boolean.yerp_boilerplate_session_completed
+            - if:
+                - condition: state
+                  entity_id: input_select.yerp_boilerplate_session_status
+                  state: warmup
+              then:
+                - service: timer.cancel
+                  data: {}
+                  target:
+                    entity_id: timer.yerp_boilerplate_warmup
+            - service: input_boolean.turn_off
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_boilerplate_session_completed
+            - service: light.turn_off
+              data: {}
+              target:
+                entity_id: light.yerp_boilerplate_bulb
+        - if:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_gate_status
+              state: "on"
+              alias: If Status is On
+          then:
+            - service: input_boolean.turn_off
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_boilerplate_session_completed
+      alias: Gate Status Changes
     - if:
-      - condition: state
-        entity_id: input_select.yerp_boilerplate_session_status
-        state: spotting
+        - condition: trigger
+          id: HA Starts
       then:
-      - service: input_select.select_option
-        data:
-          option: seekinghelp
-        target:
-          entity_id: input_select.yerp_boilerplate_session_status
-    - service: script.toggle
-      data: {}
-      target:
-        entity_id: script.yerp_boilerplate_reset_session_automatic
-    alias: Session Completed
-  - if:
-    - condition: trigger
-      id: Gate Status Changes
-    then:
-    - if:
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_gate_status
-        state: 'off'
-        alias: If Status is Off
-      then:
-      - if:
-        - condition: state
-          entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-          state: 'on'
-        then:
-        - service: timer.cancel
+        - service: input_boolean.reload
           data: {}
-          target:
-            entity_id:
-            - timer.yerp_boilerplate_threshold_countdown
-            - timer.yerp_boilerplate_warmup
-        - service: input_boolean.turn_on
-          data: {}
-          target:
-            entity_id: input_boolean.yerp_boilerplate_session_completed
-      - if:
-        - condition: state
-          entity_id: input_select.yerp_boilerplate_session_status
-          state: warmup
-        then:
-        - service: timer.cancel
-          data: {}
-          target:
-            entity_id: timer.yerp_boilerplate_warmup
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.yerp_boilerplate_session_completed
-    - if:
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_gate_status
-        state: 'on'
-        alias: If Status is On
-      then:
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.yerp_boilerplate_session_completed
-    alias: Gate Status Changes
-  - if:
-    - condition: trigger
-      id: HA Starts
-    then:
-    - service: input_text.reload
-      data: {}
-    - service: input_boolean.reload
-      data: {}
   mode: parallel
   max: 20
-- id: '1665447822166'
-  alias: YERP [Blueprint] Hardware Configurator
-  description: ''
+- id: "1669779062720"
+  alias: YERP! - Hardware Configurator
+  description: ""
   use_blueprint:
     path: YERP/area-configurator.yaml
     input:
-      activity_state: binary_sensor.zy_m100_presence
-      gate_boolean: input_boolean.yerp_boilerplate_gate_status
-      gate_state: binary_sensor.door_window_sensor_access_control_window_door_is_open
+      activity_state: binary_sensor.yerp_boilerplate_motion_sensor_occupancy
       activity_boolean: input_boolean.yerp_boilerplate_session_active
-- id: '1665515881085'
-  alias: YERP [boilerplate] Seeking Help Automation
-  description: ''
+      gate_state: binary_sensor.yerp_boilerplate_door_contact
+      gate_boolean: input_boolean.yerp_boilerplate_gate_status
+      gate_invert: input_boolean.yerp_boilerplate_gate_invert
+- id: "1669785993463"
+  alias: Session Duration Limit Flow
+  description: ""
   trigger:
-  - platform: state
-    entity_id:
-    - input_select.yerp_boilerplate_session_status
-    to: seekinghelp
-  condition: []
-  action:
-  - service: notify.mobile_app_ipad
-    data:
-      title: YERP! Seeking Help
-      message: Possibly unresponsive person in area, please check on them
-      data:
-        push:
-          sound:
-            name: Sherwood_Forest.caf
-            critical: 1
-            volume: 1
-  - service: notify.twilio_voice
-    data:
-      message: Hello NHRC, please check to see if your refrigerator is running
-      target: 18126798756
-  mode: single
-- id: '1665516822820'
-  alias: YERP [boilerplate] Spotting Actions
-  description: ''
-  trigger:
-  - platform: event
-    event_type: timer.started
-    event_data:
-      entity_id: timer.yerp_boilerplate_warmup
-    id: Warmup Begins
-  - platform: event
-    event_type: timer.finished
-    event_data:
-      entity_id: timer.yerp_boilerplate_warmup
-    id: Warmup Ends
-  - platform: event
-    event_type: timer.cancelled
-    event_data:
-      entity_id: timer.yerp_boilerplate_warmup
-    id: Warmup is Canceled
-  - platform: event
-    event_type: timer.started
-    event_data:
-      entity_id: timer.yerp_boilerplate_threshold_countdown
-    id: Spotting Begins
-  - platform: event
-    event_type: timer.finished
-    event_data:
-      entity_id: timer.yerp_boilerplate_threshold_countdown
-    id: Spotting Ends
-  - platform: event
-    event_type: timer.cancelled
-    event_data:
-      entity_id: timer.yerp_boilerplate_threshold_countdown
-    id: Spotting is Canceled
-  condition: []
-  action:
-  - if:
-    - condition: trigger
-      id: Warmup Begins
-    then:
-    - service: light.turn_on
-      data:
-        brightness_pct: 100
-        flash: short
-        rgb_color:
-        - 179
-        - 104
-        - 0
-      target:
-        entity_id: light.mock_bathroom_light
-  - if:
-    - condition: trigger
-      id: Warmup Ends
-    then:
-    - service: light.turn_on
-      data:
-        brightness_pct: 1
-        rgb_color:
-        - 0
-        - 6
-        - 179
-      target:
-        entity_id: light.mock_bathroom_light
-  - if:
-    - condition: or
-      conditions:
-      - condition: trigger
-        id: Warmup is Canceled
-      - condition: trigger
-        id: Spotting is Canceled
-    then:
-    - service: light.turn_off
-      data: {}
-      target:
-        entity_id: light.mock_bathroom_light
-  - if:
-    - condition: trigger
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      to: spotting
       id: Spotting Begins
-    then:
-    - service: light.turn_on
-      data:
-        rgb_color:
-        - 38
-        - 128
-        - 0
-        brightness_pct: 10
-      target:
-        entity_id: light.mock_bathroom_light
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: 25
-        milliseconds: 0
-    - service: light.turn_on
-      data:
-        rgb_color:
-        - 255
-        - 194
-        - 26
-        brightness_pct: 25
-        transition: 5
-      target:
-        entity_id: light.mock_bathroom_light
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: 10
-        milliseconds: 0
-    - service: light.turn_on
-      data:
-        rgb_color:
-        - 255
-        - 0
-        - 0
-        brightness_pct: 25
-        transition: 5
-        flash: long
-      target:
-        entity_id: light.mock_bathroom_light
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: 15
-        milliseconds: 0
-  - if:
-    - condition: trigger
+      alias: Spotting Begins
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      from: spotting
       id: Spotting Ends
-    then:
-    - service: light.turn_on
-      data:
-        rgb_color:
-        - 255
-        - 255
-        - 255
-        brightness_pct: 100
-        transition: 5
-        flash: short
-      target:
-        entity_id: light.mock_bathroom_light
-  mode: restart
-- id: '1670715444889'
-  alias: 'Tasmota Discovery: ZY-M100 mmWave Presence Sensor'
-  description: ''
-  use_blueprint:
-    path: tasmota/discovery_zy-m100.yaml
-    input:
-      tasmota_device: ebf2ea50f774c40410dd56fce640d484
-      topic: tasmota_93AA50
-- id: '1670882876521'
-  alias: Controller - IKEA E1743 TRÅDFRI On/Off Switch & Dimmer
-  description: ''
-  use_blueprint:
-    path: EPMatt/ikea_e1743.yaml
-    input:
-      integration: ZHA
-      controller_device: 1e18f07c3fe575d10b57cf8a0c51f54d
-      helper_last_controller_event: input_text.rehoused_button_last_command
-      action_button_up_short:
-      - service: input_boolean.toggle
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_motion
-      action_button_up_long:
-      - service: input_boolean.toggle
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_motion
-      action_button_down_short:
-      - service: input_boolean.toggle
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_motion
-      action_button_down_long:
-      - service: input_boolean.toggle
-        data: {}
-        target:
-          entity_id: input_boolean.inst_cool_motion
-      button_up_long_loop: true
-      button_down_long_loop: true
-      button_up_double_press: true
-      button_down_double_press: true
-      helper_debounce_delay: 100
-- id: '1670900699721'
-  alias: Rehoused Shortcut Button Test
-  description: ''
-  trigger:
-  - device_id: 280b03927a433f474f44cf668a13e9ec
-    domain: zha
-    platform: device
-    type: remote_button_short_press
-    subtype: turn_on
-  - device_id: 280b03927a433f474f44cf668a13e9ec
-    domain: zha
-    platform: device
-    type: remote_button_double_press
-    subtype: turn_on
-  - device_id: 280b03927a433f474f44cf668a13e9ec
-    domain: zha
-    platform: device
-    type: remote_button_long_press
-    subtype: dim_up
-  - device_id: 280b03927a433f474f44cf668a13e9ec
-    domain: zha
-    platform: device
-    type: remote_button_long_release
-    subtype: dim_up
+      alias: Spotting Ends
+    - platform: numeric_state
+      entity_id: timer.yerp_boilerplate_session_duration_limit
+      below: 31
+      id: Session timer has 30 seconds left
+      alias: Session timer has 30 seconds left
+      above: 29
+    - platform: numeric_state
+      entity_id: timer.yerp_boilerplate_session_duration_limit
+      below: 2
+      id: Session timer has 1 second left
+      alias: Session timer has 1 second left
+      above: 0
   condition: []
   action:
-  - service: input_boolean.toggle
-    data: {}
-    target:
-      entity_id: input_boolean.inst_cool_motion
+    - if:
+        - condition: trigger
+          id: Spotting Begins
+      then: []
+    - if:
+        - condition: trigger
+          id: Spotting Ends
+      then: []
+    - if:
+        - condition: trigger
+          id: Session timer has 30 seconds left
+      then: []
+    - if:
+        - condition: trigger
+          id: Session timer has 1 second left
+      then: []
   mode: single
+- id: "1669875493224"
+  alias: YERP [Boilerplate] Session Duration Limit Flow
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      from: standby
+      to: spotting
+      id: Standby to Spotting
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.yerp_boilerplate_session_duration_limit
+      alias: Timer Finishes
+      id: Timer Finishes
+    - platform: state
+      entity_id:
+        - input_select.yerp_boilerplate_session_status
+      id: Session Status Change
+      enabled: false
+  condition: []
+  action:
+    - if:
+        - condition: state
+          entity_id: input_select.yerp_boilerplate_session_status
+          state: spotting
+          enabled: false
+        - condition: trigger
+          id: Standby to Spotting
+      then:
+        - service: timer.start
+          data:
+            entity_id: timer.yerp_boilerplate_session_duration_limit
+            duration:
+              "{{ states('input_number.yerp_boilerplate_session_duration_limit') |
+              int(0) }}"
+      alias: If Spotting, Start the Timer
+    - if:
+        - condition: trigger
+          id: Session Status Change
+        - condition: not
+          conditions:
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: spotting
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: adminbypass
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: userbypass
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: elevated
+            - condition: state
+              entity_id: input_select.yerp_boilerplate_session_status
+              state: seekinghelp
+        - condition: state
+          entity_id: timer.yerp_boilerplate_session_duration_limit
+          state: active
+      then:
+        - service: timer.cancel
+          data:
+            entity_id: timer.yerp_boilerplate_session_duration_limit
+      alias: If Anything Else (other than bypass) and the Timer is On, Cancel the Timer
+  mode: restart
+- id: "1670005243280"
+  alias: Set theme on Home Assistant startup
+  description: ""
+  trigger:
+    - event: start
+      platform: homeassistant
+  action:
+    - service: frontend.set_theme
+      data:
+        name: yerp
+        mode: dark
