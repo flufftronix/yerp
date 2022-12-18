@@ -6,27 +6,27 @@
 #whitelist main configuration
 !configuration.yaml
 !automations.yaml
-!customize.yaml
-!groups.yaml
-!scenes.yaml
+# !customize.yaml
+# !groups.yaml
+# !scenes.yaml
 !scripts.yaml
-!sensor.yaml
+# !sensor.yaml
 
 #whitelist config files in subdirectory integrations
-!appdaemon/
-!appdaemon/**
-!custom_components
-!custom_components/**
-!blueprints
-!blueprints/**
+# !appdaemon/
+# !appdaemon/**
+# !custom_components
+# !custom_components/**
+!blueprints/automation/YERP
+!blueprints/automation/YERP/**
 !packages
 !packages/**
-!scripts
-!scripts/**
-!themes
-!themes/**
-!www
-!www/**
+# !scripts
+# !scripts/**
+!themes/YERP
+!themes/YERP/**
+# !www
+# !www/**
 
 #whitelist esphome subdirectory 
 # !esphome/
