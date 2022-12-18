@@ -1,3 +1,0 @@
-nspanel-1:
-  module: mqtt-test
-  class: test_Mqtt
