@@ -508,7 +508,7 @@
   use_blueprint:
     path: YERP/area-configurator.yaml
     input:
-      activity_state: binary_sensor.lumi_lumi_motion_ac02_iaszone
+      activity_state: binary_sensor.zy_m100_presence
       gate_boolean: input_boolean.yerp_boilerplate_gate_status
       gate_state: binary_sensor.door_window_sensor_access_control_window_door_is_open
       activity_boolean: input_boolean.yerp_boilerplate_session_active
@@ -534,7 +534,7 @@
             volume: 1
   - service: notify.twilio_voice
     data:
-      message: Here is a notification.
+      message: Hello NHRC, please check to see if your refrigerator is running
       target: 18126798756
   mode: single
 - id: '1665516822820'
@@ -677,3 +677,76 @@
       target:
         entity_id: light.mock_bathroom_light
   mode: restart
+- id: '1670715444889'
+  alias: 'Tasmota Discovery: ZY-M100 mmWave Presence Sensor'
+  description: ''
+  use_blueprint:
+    path: tasmota/discovery_zy-m100.yaml
+    input:
+      tasmota_device: ebf2ea50f774c40410dd56fce640d484
+      topic: tasmota_93AA50
+- id: '1670882876521'
+  alias: Controller - IKEA E1743 TRÅDFRI On/Off Switch & Dimmer
+  description: ''
+  use_blueprint:
+    path: EPMatt/ikea_e1743.yaml
+    input:
+      integration: ZHA
+      controller_device: 1e18f07c3fe575d10b57cf8a0c51f54d
+      helper_last_controller_event: input_text.rehoused_button_last_command
+      action_button_up_short:
+      - service: input_boolean.toggle
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_motion
+      action_button_up_long:
+      - service: input_boolean.toggle
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_motion
+      action_button_down_short:
+      - service: input_boolean.toggle
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_motion
+      action_button_down_long:
+      - service: input_boolean.toggle
+        data: {}
+        target:
+          entity_id: input_boolean.inst_cool_motion
+      button_up_long_loop: true
+      button_down_long_loop: true
+      button_up_double_press: true
+      button_down_double_press: true
+      helper_debounce_delay: 100
+- id: '1670900699721'
+  alias: Rehoused Shortcut Button Test
+  description: ''
+  trigger:
+  - device_id: 280b03927a433f474f44cf668a13e9ec
+    domain: zha
+    platform: device
+    type: remote_button_short_press
+    subtype: turn_on
+  - device_id: 280b03927a433f474f44cf668a13e9ec
+    domain: zha
+    platform: device
+    type: remote_button_double_press
+    subtype: turn_on
+  - device_id: 280b03927a433f474f44cf668a13e9ec
+    domain: zha
+    platform: device
+    type: remote_button_long_press
+    subtype: dim_up
+  - device_id: 280b03927a433f474f44cf668a13e9ec
+    domain: zha
+    platform: device
+    type: remote_button_long_release
+    subtype: dim_up
+  condition: []
+  action:
+  - service: input_boolean.toggle
+    data: {}
+    target:
+      entity_id: input_boolean.inst_cool_motion
+  mode: single
