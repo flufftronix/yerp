@@ -2,7 +2,23 @@ default_config:
 
 tts:
   - platform: google_translate
-  - platform: picotts_remote
+  - platform: picotts
+  - platform: google_cloud
+    key_file: google-cloud.json
+    language: en-US
+    gender: male
+    voice: en-US-News-N
+    encoding: linear16
+    speed: 0.9
+    pitch: -4
+    gain: 5.0
+    profiles:
+      - telephony-class-application
+
+media_player:
+  - platform: mpd
+    host: 243ffc37-mpd
+    port: 6600
 
 twilio:
   account_sid: !secret twilio_account_sid
