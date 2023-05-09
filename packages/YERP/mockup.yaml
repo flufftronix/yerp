@@ -1,0 +1,293 @@
+yerp_mockup:
+  ################################################
+  #                                              #
+  #               HISTORY STATS                  #
+  #                                              #
+  ################################################
+
+  sensor:
+    - platform: history_stats
+      name: "YERP [Mockup] Total Duration of Today's Sessions"
+      entity_id: input_boolean.yerp_mockup_this_session_spotting
+      state: "on"
+      type: time
+      start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [Mockup] Total Duration of This Week's Sessions"
+      entity_id: input_boolean.yerp_mockup_this_session_spotting
+      state: "on"
+      type: time
+      start: "{{ as_timestamp( now().replace(hour=0, minute=0, second=0) ) - now().weekday() * 86400 }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [Mockup] Sessions This Week"
+      entity_id: input_boolean.yerp_mockup_session_completed
+      state: "on"
+      type: count
+      start: "{{ as_timestamp( now().replace(hour=0, minute=0, second=0) ) - now().weekday() * 86400 }}"
+      end: "{{ now() }}"
+    - platform: history_stats
+      name: "YERP [Mockup] Sessions Today"
+      entity_id: input_boolean.yerp_mockup_session_completed
+      state: "on"
+      type: count
+      start: "{{ now().replace(hour=0, minute=0, second=0) }}"
+      end:
+        "{{ now() }}"
+
+        ################################################
+        #                                              #
+        #              SESSION METRICS                 #
+        #                                              #
+        ################################################
+
+  timer:
+    yerp_mockup_warmup:
+      duration: "00:00:10"
+    yerp_mockup_threshold_countdown:
+      duration: "00:01:00"
+    yerp_mockup_session_duration_limit:
+      duration: "00:05:00"
+
+  counter:
+    yerp_mockup_completed_sessions:
+      step: 1
+    yerp_mockup_session_completed_wellness_checks:
+      step: 1
+
+  input_boolean:
+    yerp_mockup_spotting_bypass:
+      name: "YERP [Mockup] Spotting Bypass"
+    yerp_mockup_user_button_status:
+      name: "YERP [Mockup] User Button Status"
+    yerp_mockup_area_card_details:
+      name: "YERP [Mockup] Area Card Details"
+    yerp_mockup_area_enabled:
+      name: "YERP [Mockup] Area Enabled"
+      icon: mdi:power
+    yerp_mockup_speaker_enabled:
+      name: "YERP [Mockup] Speaker Enabled"
+      icon: mdi:power
+    yerp_mockup_tutorial_enabled_next:
+      name: "YERP [Mockup] Tutorial Enabled (Next)"
+      icon: mdi:power
+    yerp_mockup_tutorial_enabled_ongoing:
+      name: "YERP [Mockup] Tutorial Enabled (Ongoing)"
+      icon: mdi:power
+    yerp_mockup_light_enabled:
+      name: "YERP [Mockup] Light Enabled"
+      icon: mdi:power
+    yerp_mockup_session_active:
+      name: "YERP [Mockup] Session Active"
+      icon: mdi:motion
+    yerp_mockup_session_completed:
+      name: "YERP [Mockup] Session Completed"
+    yerp_mockup_session_disabled:
+      name: "YERP [Mockup] Session Disabled"
+      icon: mdi:power
+    yerp_mockup_gate_disabled:
+      name: "YERP [Mockup] Gate Disable"
+    yerp_mockup_gate_invert:
+      name: "YERP [Mockup] Gate Invert"
+    yerp_mockup_gate_adjusted:
+      name: "YERP [Mockup] Gate Adjusted"
+    yerp_mockup_gate_status:
+      name: "YERP [Mockup] Gated Status"
+    yerp_mockup_this_session_spotting:
+      name: "YERP [Mockup] this Session Spotting"
+    yerp_mockup_this_session_activation_time:
+      name: "YERP [Mockup] this Session Activation Time"
+
+  input_text:
+    yerp_mockup_friendly_room_name:
+      name: "YERP [Mockup] Friendly Room Name"
+    yerp_mockup_this_session_activation_timestamp:
+      name: "YERP [Mockup] This Session Activation Time"
+    yerp_mockup_this_session_idle_start_timestamp:
+      name: "YERP [Mockup] This Session Idle Start"
+    yerp_mockup_this_session_threshold_timestamp:
+      name: "YERP [Mockup] This Session Threshold Time"
+    yerp_mockup_this_session_duration_seconds:
+      name: "YERP [Mockup] This Session Duration"
+    yerp_mockup_this_session_this_idle_duration_seconds:
+      name: "YERP [Mockup] This Session This Idle Duration"
+    yerp_mockup_this_session_max_idle_duration_seconds:
+      name: "YERP [Mockup] This Session Max Idle Duration"
+    yerp_mockup_this_session_last_idle_duration_seconds:
+      name: "YERP [Mockup] This Spotting Last Idle Duration"
+    yerp_mockup_last_session_activation_datetime:
+      name: "YERP [Mockup] Last Session Activation Time"
+    yerp_mockup_last_spotting_activation_datetime:
+      name: "YERP [Mockup] Last Spotting Activation Time"
+    yerp_mockup_last_spotting_deactivation_datetime:
+      name: "YERP [Mockup] Last Spotting Deactivation Time"
+    yerp_mockup_last_session_duration_seconds:
+      name: "YERP [Mockup] Last Session Duration"
+    yerp_mockup_last_session_max_idle_duration_seconds:
+      name: "YERP [Mockup] Last Session Max Idle Duration"
+
+  input_number:
+    yerp_mockup_warmup:
+      name: "YERP [Mockup] Warmup"
+      icon: mdi:timer
+      min: 5
+      max: 180
+      step: 5
+    yerp_mockup_threshold:
+      name: "YERP [Mockup] Threshold"
+      icon: mdi:timer
+      min: 10
+      max: 180
+      step: 5
+    yerp_mockup_session_duration_limit:
+      name: "YERP [Mockup] Session Limit Threshold"
+      icon: mdi:timer
+      initial: 1800
+      min: 10
+      max: 5400
+      step: 5
+    yerp_mockup_elevated:
+      name: "YERP [Mockup] Elevated Threshold"
+      icon: mdi:timer
+      min: 10
+      max: 180
+      step: 5
+
+  input_select:
+    yerp_mockup_area_status:
+      name: "YERP [Mockup] Area Status"
+      options:
+        - offline
+        - online
+        - error
+        - unavailable
+        - unknown
+    yerp_mockup_spotting_status:
+      name: "YERP [Mockup] Spotting Status"
+      options:
+        - active
+        - idle
+        - unavailable
+        - unknown
+    yerp_mockup_session_status:
+      name: "YERP [Mockup] Session Status"
+      options:
+        - offline
+        - adminbypass
+        - warmup
+        - standby
+        - spotting
+        - elevated
+        - seekinghelp
+        - userexit
+        - userbypass
+        - reset
+        - error
+        - unavailable
+        - unknown
+    yerp_mockup_reason_for_deactivation:
+      name: "YERP [Mockup] Deactivation Reason"
+      options:
+        - offline
+        - adminbypass
+        - warmup
+        - standby
+        - spotting
+        - seekinghelp
+        - userexit
+        - userbypass
+        - reset
+        - error
+        - unavailable
+        - unknown
+
+  ##################################################
+  #                                                #
+  #                TEMPLATE SENSORS                #
+  #                                                #
+  #  Checks with the open/close preference, and    #
+  #  will trigger warmup or user exit accordingly  #
+  #                                                #
+  ##################################################
+
+  template:
+    sensor:
+      - name: "YERP [Mockup] This Session Percent Completed"
+        unique_id: yerp_mockup_this_session_percent_completed
+        state: >
+          {%- if (states('input_boolean.yerp_mockup_this_session_spotting') == "off" ) -%}
+            {{ 0 | int(0) }}
+          {%- else -%}        
+            {{
+            (states('input_text.yerp_mockup_this_session_this_idle_duration_seconds')|int(0) /
+            states('input_number.yerp_mockup_threshold')|int(0) * 100)
+            | round(0)
+            }}
+          {%- endif -%}
+      - name: "YERP [Mockup] This Session Timer Percent Completed"
+        unique_id: yerp_mockup_this_session_timer_percent_completed
+        state: >
+          {%- if (states('input_boolean.yerp_mockup_this_session_spotting') == "off" ) -%}
+            {{ 0 | int(0) }}
+          {%- else -%}        
+            {{
+            (states('input_text.yerp_mockup_this_session_duration_seconds')|int(0) /
+            states('input_number.yerp_session_limit_threshold')|int(0) * 100)
+            | round(0)
+            }}
+          {%- endif -%}
+
+      - name: "YERP [Mockup] Session Notes"
+        unique_id: yerp_mockup_session_note
+        state: ""
+        attributes:
+          note: ""
+
+  switch:
+    - platform: template
+      switches:
+        ##############################################
+        #                                            #
+        #                 AREA SWITCH                #
+        #                                            #
+        #  Main power button for the area, adjusts   #
+        #  session status accordingly.               #
+        #                                            #
+        ##############################################
+
+        yerp_mockup_gate_adjusted:
+          value_template: >
+            {% if (states('input_boolean.yerp_mockup_gate_invert') == 'True') %}
+            "{{ is_state('input_boolean.yerp_mockup_gate_status', 'False') }}"
+            {% else %}
+            "{{ is_state('input_boolean.yerp_mockup_gate_status', 'True') }}"
+            {% endif %}
+          turn_on:
+            service: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.yerp_mockup_gate_adjusted
+          turn_off:
+            service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.yerp_mockup_gate_adjusted
+
+  # alarm_control_panel:
+  #   - platform: manual_mqtt
+  #     state_topic: yerp/mockup/spotting/panel
+  #     command_topic: yerp/mockup/spotting/panel/set
+  #     code_arm_required: false
+  #     pending_time: 10
+  #     delay_time: 60
+  #     trigger_time: 60
+
+  # mqtt:
+  #   alarm_control_panel:
+  #     - state_topic: "yerp/mockup/spotting/panel"
+  #       availability:
+  #         - topic: "yerp/mockup/spotting/panel/availability"
+  #       command_topic: "yerp/mockup/spotting/panel/set"
+  #       value_template: "{{ value_json.state }}"
+  #       code_arm_required: false
+  #       code_disarm_required: false
+  #       code_trigger_required: false

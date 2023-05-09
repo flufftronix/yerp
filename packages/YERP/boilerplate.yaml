@@ -140,6 +140,13 @@ yerp_boilerplate:
       min: 10
       max: 180
       step: 5
+    yerp_boilerplate_session_duration_limit:
+      name: "YERP [Boilerplate] Session Limit Threshold"
+      icon: mdi:timer
+      initial: 1800
+      min: 10
+      max: 5400
+      step: 5
     yerp_boilerplate_elevated:
       name: "YERP [Boilerplate] Elevated Threshold"
       icon: mdi:timer
@@ -218,6 +225,19 @@ yerp_boilerplate:
             | round(0)
             }}
           {%- endif -%}
+      - name: "YERP [Boilerplate] This Session Timer Percent Completed"
+        unique_id: yerp_boilerplate_this_session_timer_percent_completed
+        state: >
+          {%- if (states('input_boolean.yerp_boilerplate_this_session_spotting') == "off" ) -%}
+            {{ 0 | int(0) }}
+          {%- else -%}        
+            {{
+            (states('input_text.yerp_boilerplate_this_session_duration_seconds')|int(0) /
+            states('input_number.yerp_session_limit_threshold')|int(0) * 100)
+            | round(0)
+            }}
+          {%- endif -%}
+
       - name: "YERP [Boilerplate] Session Notes"
         unique_id: yerp_boilerplate_session_note
         state: ""
@@ -261,13 +281,13 @@ yerp_boilerplate:
   #     delay_time: 60
   #     trigger_time: 60
 
-  mqtt:
-    alarm_control_panel:
-      - state_topic: "yerp/boilerplate/spotting/panel"
-        availability:
-          - topic: "yerp/boilerplate/spotting/panel/availability"
-        command_topic: "yerp/boilerplate/spotting/panel/set"
-        value_template: "{{ value_json.state }}"
-        code_arm_required: false
-        code_disarm_required: false
-        code_trigger_required: false
+  # mqtt:
+  #   alarm_control_panel:
+  #     - state_topic: "yerp/boilerplate/spotting/panel"
+  #       availability:
+  #         - topic: "yerp/boilerplate/spotting/panel/availability"
+  #       command_topic: "yerp/boilerplate/spotting/panel/set"
+  #       value_template: "{{ value_json.state }}"
+  #       code_arm_required: false
+  #       code_disarm_required: false
+  #       code_trigger_required: false

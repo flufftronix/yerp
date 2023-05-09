@@ -1,401 +1,719 @@
 yerp_boilerplate_update_sensors_every_second_while_spotting:
   alias: YERP [Boilerplate] Update duration inputs every second while spotting
   sequence:
-  - repeat:
-      while:
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-        state: 'on'
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_session_completed
-        state: 'off'
-      sequence:
-      - delay:
-          hours: 0
-          minutes: 0
-          seconds: 1
-          milliseconds: 0
-        enabled: true
-      - if:
-        - condition: state
-          entity_id: input_boolean.yerp_boilerplate_this_session_spotting
-          state: 'on'
-        - condition: state
-          entity_id: input_boolean.yerp_boilerplate_session_completed
-          state: 'off'
-        then:
-        - service: input_text.set_value
-          data:
-            value: "{% set this_activation_now = ( now().timestamp() | round ) %}{%
-              set this_activation = states('input_text.yerp_boilerplate_this_session_activation_timestamp')
-              | int(0)\n %}{% set session_duration = this_activation_now -\nthis_activation
-              %}{{ session_duration }}"
-          target:
-            entity_id: input_text.yerp_boilerplate_this_session_duration_seconds
-          alias: Set the session duration
-        - if:
+    - repeat:
+        while:
           - condition: state
-            entity_id: input_boolean.yerp_boilerplate_session_active
-            state: 'off'
-          then:
-          - service: input_text.set_value
-            data:
-              value: '{% set this_idle_now = ( now().timestamp() | round ) %}{% set
-                this_idle_last = states(''input_text.yerp_boilerplate_this_session_idle_start_timestamp'')
-                | int(0) %}{% set idle_duration = this_idle_now - this_idle_last %}{{
-                idle_duration }}'
-            target:
-              entity_id: input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
-            alias: Set the idle duration
-          - service: input_text.set_value
-            data:
-              value: '{% set this_idle = states(''input_text.yerp_boilerplate_this_session_this_idle_duration_seconds'')
-                | int(0) %}{% set prev_max_idle = states(''input_text.yerp_boilerplate_this_session_max_idle_duration_seconds'')
-                | int(0) %} {% if this_idle > prev_max_idle %} {{ this_idle }}  {%
-                else %} {{ prev_max_idle }}  {% endif %}'
-            target:
-              entity_id: input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
-            alias: Set the session max idle duration
-          alias: If Activity is Idle, set the Idle Duration and if needed set Max
-            Idle
+            entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+            state: "on"
+          - condition: state
+            entity_id: input_boolean.yerp_boilerplate_session_completed
+            state: "off"
+        sequence:
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 1
+              milliseconds: 0
+            enabled: true
+          - if:
+              - condition: state
+                entity_id: input_boolean.yerp_boilerplate_this_session_spotting
+                state: "on"
+              - condition: state
+                entity_id: input_boolean.yerp_boilerplate_session_completed
+                state: "off"
+            then:
+              - service: input_text.set_value
+                data:
+                  value:
+                    "{% set this_activation_now = ( now().timestamp() | round ) %}{%
+                    set this_activation = states('input_text.yerp_boilerplate_this_session_activation_timestamp')
+                    | int(0)\n %}{% set session_duration = this_activation_now -\nthis_activation
+                    %}{{ session_duration }}"
+                target:
+                  entity_id: input_text.yerp_boilerplate_this_session_duration_seconds
+                alias: Set the session duration
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.yerp_boilerplate_session_active
+                    state: "off"
+                then:
+                  - service: input_text.set_value
+                    data:
+                      value:
+                        "{% set this_idle_now = ( now().timestamp() | round ) %}{% set
+                        this_idle_last = states('input_text.yerp_boilerplate_this_session_idle_start_timestamp')
+                        | int(0) %}{% set idle_duration = this_idle_now - this_idle_last %}{{
+                        idle_duration }}"
+                    target:
+                      entity_id: input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
+                    alias: Set the idle duration
+                  - service: input_text.set_value
+                    data:
+                      value:
+                        "{% set this_idle = states('input_text.yerp_boilerplate_this_session_this_idle_duration_seconds')
+                        | int(0) %}{% set prev_max_idle = states('input_text.yerp_boilerplate_this_session_max_idle_duration_seconds')
+                        | int(0) %} {% if this_idle > prev_max_idle %} {{ this_idle }}  {%
+                        else %} {{ prev_max_idle }}  {% endif %}"
+                    target:
+                      entity_id: input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
+                    alias: Set the session max idle duration
+                alias:
+                  If Activity is Idle, set the Idle Duration and if needed set Max
+                  Idle
+              - delay:
+                  hours: 0
+                  minutes: 0
+                  seconds: 1
+                  milliseconds: 0
+                enabled: true
+            alias: If spotting is on
+      alias: Repeat until Spotting ends
+      enabled: true
+  mode: single
+yerp_boilerplate_reset_session:
+  alias: YERP [Boilerplate] Reset Session
+  sequence:
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_last_session_activation_datetime
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_last_spotting_deactivation_datetime
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_last_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_last_session_max_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_activation_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_idle_start_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_this_session_spotting
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_session_disabled
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_session_completed
+    - service: input_select.select_option
+      data:
+        option: reset
+      target:
+        entity_id: input_select.yerp_boilerplate_session_status
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_area_enabled
+              state: "on"
+          sequence:
+            - service: input_boolean.turn_off
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_boilerplate_area_enabled
+            - service: input_boolean.turn_on
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_boilerplate_area_enabled
+            - service: input_select.select_option
+              data:
+                option: warmup
+              target:
+                entity_id: input_select.yerp_boilerplate_session_status
+    - if:
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+          state: "on"
+      then:
         - delay:
             hours: 0
             minutes: 0
             seconds: 1
             milliseconds: 0
-          enabled: true
-        alias: If spotting is on
-    alias: Repeat until Spotting ends
-    enabled: true
-  mode: single
-yerp_boilerplate_reset_session:
-  alias: YERP [Boilerplate] Reset Session
-  sequence:
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_last_session_activation_datetime
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_last_spotting_deactivation_datetime
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_last_session_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_last_session_max_idle_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_activation_timestamp
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_idle_start_timestamp
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_this_session_spotting
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_session_disabled
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_session_completed
-  - service: input_select.select_option
-    data:
-      option: reset
-    target:
-      entity_id: input_select.yerp_boilerplate_session_status
-  - choose:
-    - conditions:
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_area_enabled
-        state: 'on'
-      sequence:
-      - service: input_boolean.turn_off
-        data: {}
-        target:
-          entity_id: input_boolean.yerp_boilerplate_area_enabled
-      - service: input_boolean.turn_on
-        data: {}
-        target:
-          entity_id: input_boolean.yerp_boilerplate_area_enabled
-      - service: input_select.select_option
-        data:
-          option: warmup
-        target:
-          entity_id: input_select.yerp_boilerplate_session_status
-  - if:
-    - condition: state
-      entity_id: input_boolean.yerp_boilerplate_gate_status
-      state: 'on'
-    then:
-    - delay:
-        hours: 0
-        minutes: 0
-        seconds: 1
-        milliseconds: 0
-    - service: timer.start
-      data:
-        duration: '{{ ( states(''input_number.yerp_boilerplate_warmup'') | int(0)
-          -1 ) }}'
-      target:
-        entity_id: timer.yerp_boilerplate_warmup
+        - service: timer.start
+          data:
+            duration:
+              "{{ ( states('input_number.yerp_boilerplate_warmup') | int(0)
+              -1 ) }}"
+          target:
+            entity_id: timer.yerp_boilerplate_warmup
   mode: single
 yerp_boilerplate_reset_session_automatic:
   alias: YERP [Boilerplate] Reset Session (Automatic)
   sequence:
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_activation_timestamp
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_idle_start_timestamp
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
-  - service: input_text.set_value
-    data:
-      value: '0'
-    target:
-      entity_id:
-      - input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_this_session_spotting
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_session_disabled
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id:
-      - input_boolean.yerp_boilerplate_session_completed
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.yerp_boilerplate_spotting_bypass
-  - service: input_boolean.turn_off
-    data: {}
-    target:
-      entity_id: input_boolean.yerp_boilerplate_failsafe
-  - service: counter.configure
-    data:
-      value: 0
-    target:
-      entity_id: counter.yerp_boilerplate_session_completed_wellness_checks
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_activation_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_idle_start_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_this_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_boilerplate_this_session_max_idle_duration_seconds
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_this_session_spotting
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_session_disabled
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_boilerplate_session_completed
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_boilerplate_spotting_bypass
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_boilerplate_failsafe
+    - service: counter.configure
+      data:
+        value: 0
+      target:
+        entity_id: counter.yerp_boilerplate_session_completed_wellness_checks
   mode: single
 yerp_boilerplate_spotter_bypass:
   alias: YERP [Boilerplate] Spotter Bypass
   sequence:
-  - condition: state
-    entity_id: input_boolean.yerp_boilerplate_area_enabled
-    state: 'on'
-  - service: input_boolean.toggle
-    data: {}
-    target:
-      entity_id: input_boolean.yerp_boilerplate_spotting_bypass
-  - if:
     - condition: state
-      entity_id: input_boolean.yerp_boilerplate_spotting_bypass
-      state: 'on'
-    then:
-    - service: input_select.select_option
-      data:
-        option: adminbypass
+      entity_id: input_boolean.yerp_boilerplate_area_enabled
+      state: "on"
+    - service: input_boolean.toggle
+      data: {}
       target:
-        entity_id: input_select.yerp_boilerplate_session_status
-  - if:
-    - condition: state
-      entity_id: input_boolean.yerp_boilerplate_spotting_bypass
-      state: 'off'
-    then:
-    - service: input_select.select_option
-      data:
-        option: warmup
-      target:
-        entity_id: input_select.yerp_boilerplate_session_status
+        entity_id: input_boolean.yerp_boilerplate_spotting_bypass
     - if:
-      - condition: state
-        entity_id: input_boolean.yerp_boilerplate_gate_adjusted
-        state: 'on'
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_spotting_bypass
+          state: "on"
       then:
-      - service: input_select.select_option
-        data:
-          option: warmup
-        target:
-          entity_id: input_select.yerp_boilerplate_session_status
-      else:
-      - service: script.yerp_boilerplate_reset_session
-        data: {}
+        - service: input_select.select_option
+          data:
+            option: adminbypass
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+    - if:
+        - condition: state
+          entity_id: input_boolean.yerp_boilerplate_spotting_bypass
+          state: "off"
+      then:
+        - service: input_select.select_option
+          data:
+            option: warmup
+          target:
+            entity_id: input_select.yerp_boilerplate_session_status
+        - if:
+            - condition: state
+              entity_id: input_boolean.yerp_boilerplate_gate_adjusted
+              state: "on"
+          then:
+            - service: input_select.select_option
+              data:
+                option: warmup
+              target:
+                entity_id: input_select.yerp_boilerplate_session_status
+          else:
+            - service: script.yerp_boilerplate_reset_session
+              data: {}
   mode: single
 yerp_boilerplate_false_positive:
   alias: YERP [Boilerplate] False Positive
   sequence:
-  - service: counter.increment
-    data: {}
-    target:
-      entity_id: counter.yerp_boilerplate_false_positives
-  - service: script.yerp_boilerplate_reset_session
-    data: {}
+    - service: counter.increment
+      data: {}
+      target:
+        entity_id: counter.yerp_boilerplate_false_positives
+    - service: script.yerp_boilerplate_reset_session
+      data: {}
   mode: single
   icon: mdi:bug
 yerp_boilerplate_create:
   alias: YERP [Boilerplate] Spotting (Create)
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/alarm_control_panel/yerp_boilerplate/config
-      retain: true
-      payload: "{\n  \"device_class\": \"alarm\",\n  \"uniq_id\": \"yerp_boilerplate_spotting\",\n
-        \ \"retain\": \"true\",\n  \"stat_t\": \"yerp/boilerplate/spotting/panel\",\n
-        \ \"cmd_t\": \"yerp/boilerplate/spotting/config\",\n  \"cod_arm_req\": \"false\",\n
-        \ \"cod_trig_req\": \"false\",\n  \"cod_dis_req\": \"false\",\n  \"sa\": \"bathroom\"\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/alarm_control_panel/yerp_boilerplate/config
+        retain: true
+        payload:
+          "{\n  \"device_class\": \"alarm\",\n  \"uniq_id\": \"yerp_boilerplate_spotting\",\n
+          \ \"retain\": \"true\",\n  \"stat_t\": \"yerp/boilerplate/spotting/panel\",\n
+          \ \"cmd_t\": \"yerp/boilerplate/spotting/config\",\n  \"cod_arm_req\": \"false\",\n
+          \ \"cod_trig_req\": \"false\",\n  \"cod_dis_req\": \"false\",\n  \"sa\": \"bathroom\"\n}\n"
   mode: single
 yerp_boilerplate_delete:
   alias: YERP [Boilerplate] Spotting (Delete)
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/button/yerp/bypass_button/config
-      retain: true
-      payload: ''
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/button/yerp/bypass_button/config
+        retain: true
+        payload: ""
   mode: single
 test_mqtt_creator:
   alias: Test MQTT Creator 2
   sequence:
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/binary_sensor/yerp/gate/config
-      retain: true
-      payload: "{\n  \"name\": \"Door\",\n  \"dev_cla\": \"door\",\n  \"state_topic\":
-        \"yerp/boilerplate/gate\",\n  \"command_topic\": \"yerp/boilerplate/gate\",\n
-        \ \"payload_on\": \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n
-        \ \"state_off\": \"0\",\n  \"unique_id\": \"yerp_boilerplate_spotter_gate\",\n
-        \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/binary_sensor/yerp/activity/config
-      retain: true
-      payload: "{\n  \"name\": \"Activity\",\n  \"dev_cla\": \"motion\",\n  \"state_topic\":
-        \"yerp/boilerplate/activity\",\n  \"command_topic\": \"yerp/boilerplate/activity\",\n
-        \ \"payload_on\": \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n
-        \ \"state_off\": \"0\",\n  \"unique_id\": \"yerp_boilerplate_spotter_motion\",\n
-        \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/alarm_control_panel/yerp/boilerplate_barmy/config
-      retain: true
-      payload: "{\n  \"name\": \"Barmy Alarmy\",\n  \"dev_cla\": \"alarm\",\n  \"state_topic\":
-        \"yerp/boilerplate/spotting/panel\",\n  \"command_topic\": \"yerp/boilerplate/spotting/panel/set\",\n
-        \ \"unique_id\": \"yerp_boilerplate_spotter_barmy\",\n  \"cod_arm_req\": \"false\",\n
-        \ \"cod_dis_req\": \"false\",\n  \"cod_trig_req\": \"false\",\n  \"en\": \"true\",\n
-        \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/switch/yerp/gate_invert/config
-      retain: true
-      payload: "{\n  \"name\": \"Gate Invert\",\n  \"dev_cla\": \"switch\",\n  \"state_topic\":
-        \"yerp/boilerplate/spotting/gateinvert\",\n  \"command_topic\": \"yerp/boilerplate/spotting/gateinvert/set\",\n
-        \ \"unique_id\": \"yerp_boilerplate_spotter_gateinvert\",\n  \"payload_on\":
-        \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n  \"state_off\":
-        \"0\",\n  \"en\": \"true\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/number/yerp/threshold/config
-      retain: true
-      payload: "{\n  \"name\": \"Spotting Threshold\",\n  \"state_topic\": \"yerp/boilerplate/spotting/threshold\",\n
-        \ \"command_topic\": \"yerp/boilerplate/spotting/threshold/set\",\n  \"unique_id\":
-        \"yerp_boilerplate_spotter_threshold\",\n  \"min\": \"5\",\n  \"max\": \"180\",\n
-        \ \"step\": \"5\",\n  \"unit_of_measurement\": \"seconds\",\n  \"mode\": \"box\",\n
-        \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/number/yerp/warmup/config
-      retain: true
-      payload: "{\n  \"name\": \"Warmup Threshold\",\n  \"state_topic\": \"yerp/boilerplate/spotting/warmup\",\n
-        \ \"command_topic\": \"yerp/boilerplate/spotting/warmup/set\",\n  \"unique_id\":
-        \"yerp_boilerplate_warmup_threshold\",\n  \"min\": \"0\",\n  \"max\": \"60\",\n
-        \ \"step\": \"5\",\n  \"unit_of_measurement\": \"seconds\",\n  \"mode\": \"box\",\n
-        \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/button/yerp/activity_button/config
-      retain: true
-      payload: "{\n  \"name\": \"Activity Button\",\n  \"command_topic\": \"yerp/boilerplate/spotting/activity_button\",\n
-        \ \"unique_id\": \"yerp_boilerplate_activity_button\",\n  \"payload_press\":
-        \"activity\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
-  - service: mqtt.publish
-    data:
-      topic: homeassistant/button/yerp/bypass_button/config
-      retain: true
-      payload: "{\n  \"name\": \"Bypass Button\",\n  \"command_topic\": \"yerp/boilerplate/spotting/bypass_button\",\n
-        \ \"unique_id\": \"yerp_boilerplate_bypass_button\",\n  \"payload_press\":
-        \"bypass\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
-        \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/binary_sensor/yerp/gate/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Door\",\n  \"dev_cla\": \"door\",\n  \"state_topic\":
+          \"yerp/boilerplate/gate\",\n  \"command_topic\": \"yerp/boilerplate/gate\",\n
+          \ \"payload_on\": \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n
+          \ \"state_off\": \"0\",\n  \"unique_id\": \"yerp_boilerplate_spotter_gate\",\n
+          \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/binary_sensor/yerp/activity/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Activity\",\n  \"dev_cla\": \"motion\",\n  \"state_topic\":
+          \"yerp/boilerplate/activity\",\n  \"command_topic\": \"yerp/boilerplate/activity\",\n
+          \ \"payload_on\": \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n
+          \ \"state_off\": \"0\",\n  \"unique_id\": \"yerp_boilerplate_spotter_motion\",\n
+          \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/alarm_control_panel/yerp/boilerplate_barmy/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Barmy Alarmy\",\n  \"dev_cla\": \"alarm\",\n  \"state_topic\":
+          \"yerp/boilerplate/spotting/panel\",\n  \"command_topic\": \"yerp/boilerplate/spotting/panel/set\",\n
+          \ \"unique_id\": \"yerp_boilerplate_spotter_barmy\",\n  \"cod_arm_req\": \"false\",\n
+          \ \"cod_dis_req\": \"false\",\n  \"cod_trig_req\": \"false\",\n  \"en\": \"true\",\n
+          \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/switch/yerp/gate_invert/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Gate Invert\",\n  \"dev_cla\": \"switch\",\n  \"state_topic\":
+          \"yerp/boilerplate/spotting/gateinvert\",\n  \"command_topic\": \"yerp/boilerplate/spotting/gateinvert/set\",\n
+          \ \"unique_id\": \"yerp_boilerplate_spotter_gateinvert\",\n  \"payload_on\":
+          \"1\",\n  \"payload_off\": \"0\",\n  \"state_on\": \"1\",\n  \"state_off\":
+          \"0\",\n  \"en\": \"true\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/number/yerp/threshold/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Spotting Threshold\",\n  \"state_topic\": \"yerp/boilerplate/spotting/threshold\",\n
+          \ \"command_topic\": \"yerp/boilerplate/spotting/threshold/set\",\n  \"unique_id\":
+          \"yerp_boilerplate_spotter_threshold\",\n  \"min\": \"5\",\n  \"max\": \"180\",\n
+          \ \"step\": \"5\",\n  \"unit_of_measurement\": \"seconds\",\n  \"mode\": \"box\",\n
+          \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/number/yerp/warmup/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Warmup Threshold\",\n  \"state_topic\": \"yerp/boilerplate/spotting/warmup\",\n
+          \ \"command_topic\": \"yerp/boilerplate/spotting/warmup/set\",\n  \"unique_id\":
+          \"yerp_boilerplate_warmup_threshold\",\n  \"min\": \"0\",\n  \"max\": \"60\",\n
+          \ \"step\": \"5\",\n  \"unit_of_measurement\": \"seconds\",\n  \"mode\": \"box\",\n
+          \ \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/button/yerp/activity_button/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Activity Button\",\n  \"command_topic\": \"yerp/boilerplate/spotting/activity_button\",\n
+          \ \"unique_id\": \"yerp_boilerplate_activity_button\",\n  \"payload_press\":
+          \"activity\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
+    - service: mqtt.publish
+      data:
+        topic: homeassistant/button/yerp/bypass_button/config
+        retain: true
+        payload:
+          "{\n  \"name\": \"Bypass Button\",\n  \"command_topic\": \"yerp/boilerplate/spotting/bypass_button\",\n
+          \ \"unique_id\": \"yerp_boilerplate_bypass_button\",\n  \"payload_press\":
+          \"bypass\",\n  \"device\": {\n      \"identifiers\": [\"yerp_boilerplate_spotter_\"]\n
+          \ }\n}\n"
   mode: single
+yerp_mockup_update_sensors_every_second_while_spotting:
+  alias: YERP [Mockup] Update duration inputs every second while spotting
+  sequence:
+    - repeat:
+        while:
+          - condition: state
+            entity_id: input_boolean.yerp_mockup_this_session_spotting
+            state: "on"
+          - condition: state
+            entity_id: input_boolean.yerp_mockup_session_completed
+            state: "off"
+        sequence:
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 1
+              milliseconds: 0
+            enabled: true
+          - if:
+              - condition: state
+                entity_id: input_boolean.yerp_mockup_this_session_spotting
+                state: "on"
+              - condition: state
+                entity_id: input_boolean.yerp_mockup_session_completed
+                state: "off"
+            then:
+              - service: input_text.set_value
+                data:
+                  value:
+                    "{% set this_activation_now = ( now().timestamp() | round ) %}{%
+                    set this_activation = states('input_text.yerp_mockup_this_session_activation_timestamp')
+                    | int(0)\n %}{% set session_duration = this_activation_now -\nthis_activation
+                    %}{{ session_duration }}"
+                target:
+                  entity_id: input_text.yerp_mockup_this_session_duration_seconds
+                alias: Set the session duration
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.yerp_mockup_session_active
+                    state: "off"
+                then:
+                  - service: input_text.set_value
+                    data:
+                      value:
+                        "{% set this_idle_now = ( now().timestamp() | round ) %}{% set
+                        this_idle_last = states('input_text.yerp_mockup_this_session_idle_start_timestamp')
+                        | int(0) %}{% set idle_duration = this_idle_now - this_idle_last %}{{
+                        idle_duration }}"
+                    target:
+                      entity_id: input_text.yerp_mockup_this_session_this_idle_duration_seconds
+                    alias: Set the idle duration
+                  - service: input_text.set_value
+                    data:
+                      value:
+                        "{% set this_idle = states('input_text.yerp_mockup_this_session_this_idle_duration_seconds')
+                        | int(0) %}{% set prev_max_idle = states('input_text.yerp_mockup_this_session_max_idle_duration_seconds')
+                        | int(0) %} {% if this_idle > prev_max_idle %} {{ this_idle }}  {%
+                        else %} {{ prev_max_idle }}  {% endif %}"
+                    target:
+                      entity_id: input_text.yerp_mockup_this_session_max_idle_duration_seconds
+                    alias: Set the session max idle duration
+                alias:
+                  If Activity is Idle, set the Idle Duration and if needed set Max
+                  Idle
+              - delay:
+                  hours: 0
+                  minutes: 0
+                  seconds: 1
+                  milliseconds: 0
+                enabled: true
+            alias: If spotting is on
+      alias: Repeat until Spotting ends
+      enabled: true
+  mode: single
+yerp_mockup_reset_session:
+  alias: YERP [Mockup] Reset Session
+  sequence:
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_last_session_activation_datetime
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_last_spotting_deactivation_datetime
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_last_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_last_session_max_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_activation_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_idle_start_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_this_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_max_idle_duration_seconds
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_this_session_spotting
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_session_disabled
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_session_completed
+    - service: input_select.select_option
+      data:
+        option: reset
+      target:
+        entity_id: input_select.yerp_mockup_session_status
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_mockup_area_enabled
+              state: "on"
+          sequence:
+            - service: input_boolean.turn_off
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_mockup_area_enabled
+            - service: input_boolean.turn_on
+              data: {}
+              target:
+                entity_id: input_boolean.yerp_mockup_area_enabled
+            - service: input_select.select_option
+              data:
+                option: warmup
+              target:
+                entity_id: input_select.yerp_mockup_session_status
+    - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_gate_status
+          state: "on"
+      then:
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 1
+            milliseconds: 0
+        - service: timer.start
+          data:
+            duration: "{{ ( states('input_number.yerp_mockup_warmup') | int(0)
+              -1 ) }}"
+          target:
+            entity_id: timer.yerp_mockup_warmup
+  mode: single
+yerp_mockup_reset_session_automatic:
+  alias: YERP [Mockup] Reset Session (Automatic)
+  sequence:
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_activation_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_idle_start_timestamp
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_this_idle_duration_seconds
+    - service: input_text.set_value
+      data:
+        value: "0"
+      target:
+        entity_id:
+          - input_text.yerp_mockup_this_session_max_idle_duration_seconds
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_this_session_spotting
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_session_disabled
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id:
+          - input_boolean.yerp_mockup_session_completed
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_spotting_bypass
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_failsafe
+    - service: counter.configure
+      data:
+        value: 0
+      target:
+        entity_id: counter.yerp_mockup_session_completed_wellness_checks
+  mode: single
+yerp_mockup_spotter_bypass:
+  alias: YERP [Mockup] Spotter Bypass
+  sequence:
+    - condition: state
+      entity_id: input_boolean.yerp_mockup_area_enabled
+      state: "on"
+    - service: input_boolean.toggle
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_spotting_bypass
+    - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_spotting_bypass
+          state: "on"
+      then:
+        - service: input_select.select_option
+          data:
+            option: adminbypass
+          target:
+            entity_id: input_select.yerp_mockup_session_status
+    - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_spotting_bypass
+          state: "off"
+      then:
+        - service: input_select.select_option
+          data:
+            option: warmup
+          target:
+            entity_id: input_select.yerp_mockup_session_status
+        - if:
+            - condition: state
+              entity_id: input_boolean.yerp_mockup_gate_adjusted
+              state: "on"
+          then:
+            - service: input_select.select_option
+              data:
+                option: warmup
+              target:
+                entity_id: input_select.yerp_mockup_session_status
+          else:
+            - service: script.yerp_mockup_reset_session
+              data: {}
+  mode: single
+yerp_mockup_false_positive:
+  alias: YERP [Mockup] False Positive
+  sequence:
+    - service: counter.increment
+      data: {}
+      target:
+        entity_id: counter.yerp_mockup_false_positives
+    - service: script.yerp_mockup_reset_session
+      data: {}
+  mode: single
+  icon: mdi:bug

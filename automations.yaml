@@ -920,7 +920,7 @@
     input:
       activity_state: binary_sensor.zy_m100_presence
       activity_boolean: input_boolean.yerp_boilerplate_session_active
-      gate_state: binary_sensor.yerp_229_door_contact
+      gate_state: binary_sensor.yerp_boilerplate_door_contact
       gate_boolean: input_boolean.yerp_boilerplate_gate_status
 - id: '1672024077508'
   alias: YERP [Boilerplate] Session Duration Limit Flow
@@ -1419,4 +1419,1511 @@
       data: {}
       target:
         entity_id: light.kauf_rgb_sw_small_light
+  mode: restart
+- id: '1683576924610'
+  alias: Boilerplate Visitor Bot
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.yerp_boilerplate_session_status
+    to: standby
+  condition: []
+  action:
+  - repeat:
+      while:
+      - condition: state
+        entity_id: input_boolean.yerp_boilerplate_area_enabled
+        state: 'on'
+      sequence:
+      - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+      - repeat:
+          count: '{{ range(0, 21) | random }}'
+          sequence:
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_boilerplate_session_active
+          - delay: 00:00:{{ range(0, 60) | random }}
+          - service: input_boolean.turn_off
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_boilerplate_session_active
+          - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+      - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_boilerplate_gate_status
+  mode: restart
+- id: '2672023260202'
+  alias: YERP [Mockup] Wellness Check Prompt
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    to: elevated
+    id: Elevated
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    to: seekinghelp
+    id: Seeking Help
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    id: Seeking Help Ends
+    from: seekinghelp
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Seeking Help
+    then:
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.vlc_telnet
+      data:
+        media_content_id: media-source://media_source/local/toxic-bardcore.mp3
+        media_content_type: audio/mpeg
+      metadata:
+        title: toxic-bardcore.mp3
+        thumbnail:
+        media_class: music
+        children_media_class:
+        navigateIds:
+        - media_content_type: app
+          media_content_id: media-source://media_source
+    - service: notify.twilio_sms
+      data:
+        message: '{{ (states(''input_number.yerp_mockup_failsafe_threshold'') | int(0)
+          | round ) }} seconds have passed, unresponded, since a wellness check was
+          prompted for the {{ states(''input_text.yerp_mockup_friendly_room_name'')
+          }}'
+        target: -!secret seeking_help_number
+  - if:
+    - condition: trigger
+      id: Elevated
+    then:
+    - service: tts.picotts_remote_say
+      data:
+        entity_id: media_player.vlc_telnet
+        message: Please check on the bathroom.
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id:
+        - input_boolean.yerp_mockup_elevated_countdown
+    - service: timer.start
+      data:
+        duration: '{{ states(''input_number.yerp_mockup_failsafe_threshold'') }}'
+      target:
+        entity_id: timer.yerp_mockup_failsafe_timer
+  - if:
+    - condition: trigger
+      id: Seeking Help Ends
+    then:
+    - service: media_player.media_stop
+      data: {}
+      target:
+        entity_id: media_player.vlc_telnet
+  mode: single
+- id: '2672023909002'
+  alias: YERP [Mockup] Timer Actions
+  description: ''
+  trigger:
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_warmup
+    id: Warmup Begins
+    alias: Warmup Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_warmup
+    id: Warmup Ends
+    alias: Warmup Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_mockup_warmup
+    id: Warmup is Canceled
+    alias: Warmup Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_threshold_countdown
+    id: Spotting Begins
+    alias: Spotting Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_threshold_countdown
+    id: Spotting Ends
+    alias: Spotting Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_mockup_threshold_countdown
+    id: Spotting is Canceled
+    alias: Spotting Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_session_duration_limit
+    id: Duration Limit Begins
+    alias: Duration Limit Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_session_duration_limit
+    id: Duration Limit Ends
+    alias: Duration Limit Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_mockup_session_duration_limit
+    id: Duration Limit is Canceled
+    alias: Duration Limit Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_failsafe_timer
+    id: Elevated Begins
+    alias: Elevated Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_failsafe_timer
+    id: Elevated Ends
+    alias: Elevated Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_mockup_failsafe_timer
+    id: Elevated Canceled
+    alias: Elevated Canceled
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Warmup Begins
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        flash: short
+        color_name: green
+      target:
+        area_id: bathroom
+  - if:
+    - condition: trigger
+      id: Warmup Ends
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        rgb_color:
+        - 0
+        - 6
+        - 179
+      target:
+        entity_id: light.yerp_mockup_bulb
+  - if:
+    - condition: trigger
+      id: Spotting Begins
+    then:
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 38
+        - 128
+        - 0
+        brightness_pct: 100
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) * 0.75
+          ) }}'
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 194
+        - 26
+        brightness_pct: 100
+        transition: 5
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) / 12
+          ) }}'
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 0
+        - 0
+        brightness_pct: 100
+        transition: 5
+        flash: long
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) / 12
+          ) }}'
+  - if:
+    - condition: trigger
+      id: Spotting Ends
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        transition: 5
+        flash: short
+      target:
+        entity_id: light.yerp_mockup_bulb
+  - if:
+    - condition: trigger
+      id: Duration Limit Ends
+    then:
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.vlc_telnet
+      data:
+        media_content_id: media-source://media_source/local/deskbell.mp3
+        media_content_type: audio/mpeg
+      metadata:
+        title: deskbell.mp3
+        thumbnail:
+        media_class: music
+        children_media_class:
+        navigateIds:
+        - {}
+        - media_content_type: app
+          media_content_id: media-source://media_source
+  - if:
+    - condition: trigger
+      id: Elevated Begins
+    then:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_failsafe_countdown
+  - if:
+    - condition: trigger
+      id: Elevated Ends
+    then:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_failsafe
+    - service: input_select.select_option
+      data:
+        option: seekinghelp
+      target:
+        entity_id: input_select.yerp_mockup_session_status
+  mode: restart
+- id: '2672023939822'
+  alias: YERP [Mockup] Visitor Button Presses
+  description: ''
+  trigger:
+  - platform: device
+    domain: mqtt
+    device_id: 066a95fd8c0951aa26e267cf98abcb53
+    type: action
+    subtype: single
+    discovery_id: 0x00158d000282cf6d action_single
+    alias: Bypass Button - Single
+    id: Bypass Button - Single
+  - platform: device
+    domain: mqtt
+    device_id: 91c2bf4ec4ca6109eacac1a6418bea13
+    type: action
+    subtype: single
+    discovery_id: 0x00124b0022e96283 action_single
+    id: Activity Button - Single
+    alias: Activity Button - Single
+  - platform: device
+    domain: mqtt
+    device_id: 066a95fd8c0951aa26e267cf98abcb53
+    type: action
+    subtype: hold
+    discovery_id: 0x00158d000282cf6d action_hold
+    id: Bypass Button - Hold
+    alias: Bypass Button - Hold
+  - platform: device
+    domain: mqtt
+    device_id: 91c2bf4ec4ca6109eacac1a6418bea13
+    type: action
+    subtype: double
+    discovery_id: 0x00124b0022e96283 action_double
+    id: Activity Button - Double
+    alias: Activity Button - Double
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: input_select.yerp_mockup_session_status
+      state: warmup
+    - condition: state
+      entity_id: input_select.yerp_mockup_session_status
+      state: standby
+    - condition: state
+      entity_id: input_select.yerp_mockup_session_status
+      state: spotting
+  action:
+  - if:
+    - condition: or
+      conditions:
+      - condition: trigger
+        id: Bypass Button - Single
+      - condition: trigger
+        id: Bypass Button - Hold
+      alias: Bypass Button Single or Hold
+    then:
+    - service: input_boolean.toggle
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_spotting_bypass
+    - service: input_select.select_option
+      data:
+        option: userbypass
+      target:
+        entity_id: input_select.yerp_mockup_session_status
+    - service: logbook.log
+      data:
+        name: Visitor Button Press
+        message: Bypass button pressed
+    - service: light.turn_on
+      data:
+        color_name: purple
+        brightness_pct: 100
+      target:
+        entity_id: light.yerp_mockup_bulb
+  - if:
+    - condition: or
+      conditions:
+      - condition: trigger
+        id: Activity Button - Single
+      - condition: trigger
+        id: Activity Button - Double
+      alias: Activity Button Single or Hold
+    then:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_session_active
+    - delay:
+        seconds: 5
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_session_active
+    - service: logbook.log
+      data:
+        name: Visitor Button Press
+        message: Bypass button pressed
+    - service: light.turn_on
+      data:
+        color_name: pink
+      target:
+        entity_id: light.yerp_mockup_bulb
+  mode: restart
+- id: '2672023987730'
+  alias: YERP [Mockup] Spotting Flow
+  description: ''
+  trigger:
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_threshold_countdown
+    alias: Threshold Expires
+    id: Threshold Expires
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_warmup
+    alias: Warmup Expires
+    id: Warmup Expires
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_area_enabled
+    alias: Area Enabled/Disabled
+    id: Area Enabled/Disabled
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_spotting_status
+    alias: Spotting Status Changes
+    id: Spotting Status Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_this_session_spotting
+    id: This Session Spotting Changes
+    alias: This Session Spotting Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_gate_status
+    id: Gate Status Changes
+    alias: Gate Status Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+    alias: Activity Entity State Changes
+    id: Activity Entity State Changes
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_completed
+    alias: Session Completed
+    id: Session Completed
+    to: 'on'
+  - platform: homeassistant
+    event: start
+    id: HA Starts
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_spotting_bypass
+    to: 'on'
+    alias: Spotting Bypass
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    id: Elevated
+    to: elevated
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_mockup_area_enabled
+      state: 'on'
+    then:
+    - if:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: input_select.yerp_mockup_session_status
+          state: offline
+        - condition: state
+          entity_id: input_select.yerp_mockup_session_status
+          state: warmup
+      then:
+      - service: input_select.select_option
+        data:
+          option: online
+        target:
+          entity_id: input_select.yerp_mockup_area_status
+      - service: input_select.select_option
+        data:
+          option: warmup
+        target:
+          entity_id: input_select.yerp_mockup_session_status
+      - service: mqtt.publish
+        data:
+          payload: online
+          topic: homeassistant/alarm/yerp/mockup_session/availability
+          retain: true
+      - service: mqtt.publish
+        data:
+          topic: homeassistant/alarm/yerp/mockup_session/set
+          payload: arming
+          retain: true
+      - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_gate_status
+          state: 'on'
+          alias: Gated Status is ready
+        - condition: or
+          conditions:
+          - condition: trigger
+            id: Area Enabled/Disabled
+          - condition: trigger
+            id: Gate Status Changes
+        then:
+        - service: timer.start
+          data:
+            duration: '{{ states(''input_number.yerp_mockup_warmup'') }}'
+          target:
+            entity_id: timer.yerp_mockup_warmup
+        else: []
+      alias: If Session is Offline or Warmup
+    - if:
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: spotting
+      then:
+      - if:
+        - condition: trigger
+          id: Threshold Expires
+        then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_mockup_failsafe_countdown
+        - service: input_select.select_option
+          data:
+            option: elevated
+          target:
+            entity_id:
+            - input_select.yerp_mockup_session_status
+        alias: If threshold expires, mark session as elevated
+      - if:
+        - condition: trigger
+          id: Activity Entity State Changes
+        then:
+        - choose:
+          - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_mockup_session_active
+              state: 'on'
+              alias: If activity turned on
+            sequence:
+            - service: timer.cancel
+              target:
+                entity_id: timer.yerp_mockup_threshold_countdown
+              data: {}
+            - service: input_text.set_value
+              data:
+                value: '0'
+              target:
+                entity_id: input_text.yerp_mockup_this_session_this_idle_duration_seconds
+          - conditions:
+            - condition: state
+              entity_id: input_boolean.yerp_mockup_session_active
+              state: 'off'
+              alias: If activity turned off
+            sequence:
+            - service: timer.start
+              data:
+                duration: '{{ states(''input_number.yerp_mockup_threshold'') }}'
+              target:
+                entity_id: timer.yerp_mockup_threshold_countdown
+            - if:
+              - condition: state
+                entity_id: input_boolean.yerp_mockup_this_session_spotting
+                state: 'on'
+              then:
+              - service: input_text.set_value
+                data:
+                  value: '{{ now().timestamp() | round }}'
+                target:
+                  entity_id: input_text.yerp_mockup_this_session_idle_start_timestamp
+          alias: Pick Activity on or off
+        alias: If Activity Boolean changes
+      - if:
+        - condition: trigger
+          id: Gate Status Changes
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_gate_status
+          state: 'off'
+        then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_mockup_session_completed
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_mockup_this_session_spotting
+        - service: input_select.select_option
+          data:
+            option: userexit
+          target:
+            entity_id: input_select.yerp_mockup_session_status
+        alias: If open/close triggers, set session to userexit
+      alias: If Session is Spotting
+    - if:
+      - condition: trigger
+        id: Warmup Expires
+      then:
+      - if:
+        - condition: state
+          entity_id: input_select.yerp_mockup_activity_status
+          state: active
+        then:
+        - wait_for_trigger:
+          - platform: state
+            entity_id:
+            - input_select.yerp_mockup_activity_status
+            to: idle
+          alias: Wait until idle
+        else: []
+        alias: Check to see if activity status is on
+      - service: input_select.select_option
+        data:
+          option: standby
+        target:
+          entity_id: input_select.yerp_mockup_session_status
+      alias: If Warmup Timer Expires, Advance
+    - if:
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: warmup
+        alias: If Warmup
+      then:
+      - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_gate_adjusted
+          state: 'on'
+        then:
+        - service: timer.start
+          data:
+            duration: '{{ states(''input_number.yerp_mockup_warmup'') | int(0) }}'
+          target:
+            entity_id: timer.yerp_mockup_warmup
+      alias: If Session is Warmup
+    - if:
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: standby
+      then:
+      - if:
+        - condition: trigger
+          id: Activity Entity State Changes
+        then:
+        - if:
+          - condition: state
+            entity_id: input_boolean.yerp_mockup_session_active
+            state: 'on'
+          then:
+          - service: input_select.select_option
+            data:
+              option: spotting
+            target:
+              entity_id: input_select.yerp_mockup_session_status
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_mockup_this_session_spotting
+          - service: input_text.set_value
+            target:
+              entity_id: input_text.yerp_mockup_this_session_activation_timestamp
+            data:
+              value: '{{ now().timestamp() | round }}'
+          - service: input_text.set_value
+            target:
+              entity_id: input_text.yerp_mockup_this_session_duration_seconds
+            data:
+              value: '0'
+          - service: script.yerp_mockup_update_sensors_every_second_while_spotting
+            data: {}
+      - if:
+        - condition: trigger
+          id: Gate Status Changes
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_gate_status
+          state: 'off'
+        then:
+        - service: input_select.select_option
+          data:
+            option: warmup
+          target:
+            entity_id: input_select.yerp_mockup_session_status
+      alias: If Session is Standby
+    - if:
+      - condition: trigger
+        id: Gate Status Changes
+      then:
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.yerp_mockup_gate_status
+            state: 'on'
+            alias: If open/closed status is on, go to warmup
+          sequence:
+          - service: input_select.select_option
+            target:
+              entity_id: input_select.yerp_mockup_session_status
+            data:
+              option: warmup
+          - service: timer.start
+            data:
+              duration: '{{ states(''input_number.yerp_mockup_warmup'') }}'
+            target:
+              entity_id: timer.yerp_mockup_warmup
+        - conditions:
+          - condition: state
+            entity_id: input_boolean.yerp_mockup_gate_status
+            state: 'off'
+            alias: If open/closed status is off
+          - condition: state
+            entity_id: input_select.yerp_mockup_session_status
+            state: spotting
+            alias: If Spotting
+          sequence:
+          - service: timer.cancel
+            target:
+              entity_id: timer.yerp_mockup_warmup
+            data: {}
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_mockup_session_completed
+            alias: Mark Session as Completed
+      alias: If Gate status changes
+    - if:
+      - condition: state
+        entity_id: input_boolean.yerp_mockup_spotting_bypass
+        state: 'on'
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: userbypass
+      then:
+      - if:
+        - condition: state
+          entity_id: timer.yerp_mockup_threshold_countdown
+          state: active
+        then:
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id: timer.yerp_mockup_threshold_countdown
+      alias: If Visitor Activates Bypass
+    alias: Area is On and Completed is Off
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_mockup_area_enabled
+      state: 'off'
+    then:
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_spotting_bypass
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.yerp_mockup_session_status
+      data:
+        option: offline
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.yerp_mockup_this_session_spotting
+      data: {}
+    - service: input_select.select_option
+      data:
+        option: offline
+      target:
+        entity_id: input_select.yerp_mockup_area_status
+    - service: timer.cancel
+      data: {}
+      target:
+        entity_id:
+        - timer.yerp_mockup_warmup
+        - timer.yerp_mockup_threshold_countdown
+        - timer.yerp_mockup_session_duration_limit
+    - service: input_select.select_option
+      data:
+        option: offline
+      target:
+        entity_id: input_select.yerp_mockup_reason_for_deactivation
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - service: mqtt.publish
+      data:
+        payload: offline
+        topic: homeassistant/alarm/yerp/mockup_session/availability
+        retain: true
+    alias: Area is Off
+  - if:
+    - condition: trigger
+      id: Session Completed
+    then:
+    - service: timer.cancel
+      data: {}
+      target:
+        entity_id:
+        - timer.yerp_mockup_threshold_countdown
+        - timer.yerp_mockup_warmup
+      alias: Cancel out the timers
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_mockup_this_session_activation_timestamp'')
+          | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'') }}'
+      target:
+        entity_id: input_text.yerp_mockup_last_session_activation_datetime
+      alias: Set Last Session's activation time
+    - service: input_text.set_value
+      data:
+        value: '{{ now().timestamp() | int(0) | timestamp_custom(''%Y-%m-%dT%H:%M:%S%z'')
+          }}'
+      target:
+        entity_id: input_text.yerp_mockup_last_spotting_deactivation_datetime
+      alias: Set Last Session's completed time
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_mockup_this_session_max_idle_duration_seconds'')
+          }}'
+      target:
+        entity_id: input_text.yerp_mockup_last_session_max_idle_duration_seconds
+      alias: Set Last Session's Max Idle
+    - service: input_text.set_value
+      data:
+        value: '{{ states(''input_text.yerp_mockup_this_session_duration_seconds'')
+          }}'
+      target:
+        entity_id: input_text.yerp_mockup_last_session_duration_seconds
+      alias: Set Last Session's Duration
+    - service: input_boolean.turn_off
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_mockup_this_session_spotting
+    - service: input_select.select_option
+      data:
+        option: '{{ states(''input_select.yerp_mockup_session_status'') }}'
+      target:
+        entity_id: input_select.yerp_mockup_reason_for_deactivation
+    - service: input_text.set_value
+      data:
+        value: Session started in {{states('input_text.yerp_mockup_friendly_room_name')}}
+          at {{states('input_text.yerp_mockup_last_session_activation_datetime')}}
+          ended, because {{states('input_select.yerp_mockup_reason_for_deactivation')}}.
+          Max idle was {{states('input_text.yerp_mockup_last_session_max_idle_duration_seconds')}}
+          seconds.
+      target:
+        entity_id: input_text.yerp_session_log
+    - service: rest_command.update_nocodb_sessions
+      continue_on_error: true
+      data:
+        sessionstart: '{{ states(''input_text.yerp_mockup_last_session_activation_datetime'')
+          }}'
+        sessionend: '{{ states(''input_text.yerp_mockup_last_spotting_deactivation_datetime'')
+          }}'
+        sessionlength: '{{ states(''input_text.yerp_mockup_last_session_duration_seconds'')
+          }}'
+        longestgap: '{{ states(''input_text.yerp_mockup_last_session_max_idle_duration_seconds'')
+          }}'
+        endtrigger: '{{ states(''input_select.yerp_reason_for_deactivation'') }}'
+        suppliesused: ''
+        calledems: ''
+        area: mockup
+      alias: Send Report to DB
+      enabled: false
+    - service: script.toggle
+      data: {}
+      target:
+        entity_id: script.yerp_mockup_reset_session_automatic
+      enabled: true
+    alias: Session Completed
+  - if:
+    - condition: trigger
+      id: Gate Status Changes
+    then:
+    - if:
+      - condition: state
+        entity_id: input_boolean.yerp_mockup_gate_status
+        state: 'off'
+        alias: If Status is Off
+      then:
+      - if:
+        - condition: state
+          entity_id: input_boolean.yerp_mockup_this_session_spotting
+          state: 'on'
+        then:
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id:
+            - timer.yerp_mockup_threshold_countdown
+            - timer.yerp_mockup_warmup
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.yerp_mockup_session_completed
+      - if:
+        - condition: state
+          entity_id: input_select.yerp_mockup_session_status
+          state: warmup
+        then:
+        - service: timer.cancel
+          data: {}
+          target:
+            entity_id: timer.yerp_mockup_warmup
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_mockup_session_completed
+      - service: light.turn_off
+        data: {}
+        target:
+          entity_id: light.yerp_mockup_bulb
+    - if:
+      - condition: state
+        entity_id: input_boolean.yerp_mockup_gate_status
+        state: 'on'
+        alias: If Status is On
+      then:
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_mockup_session_completed
+    alias: Gate Status Changes
+  - if:
+    - condition: trigger
+      id: HA Starts
+    then:
+    - service: input_boolean.reload
+      data: {}
+  mode: parallel
+  max: 20
+- id: '2672024005449'
+  alias: YERP! [Mockup] Hardware Configurator
+  description: ''
+  use_blueprint:
+    path: YERP/area-configurator.yaml
+    input:
+      activity_boolean: input_boolean.yerp_mockup_session_active
+      gate_state: binary_sensor.yerp_mockup_door_contact
+      gate_boolean: input_boolean.yerp_mockup_gate_status
+      activity_state: binary_sensor.ecolink_pir_red_led_any
+- id: '2672024077508'
+  alias: YERP [Mockup] Session Duration Limit Flow
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    from: standby
+    to: spotting
+    id: Standby to Spotting
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_mockup_session_duration_limit
+    alias: Timer Finishes
+    id: Timer Finishes
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    id: Session Status Change
+    enabled: false
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: input_select.yerp_mockup_session_status
+      state: spotting
+      enabled: false
+    - condition: trigger
+      id: Standby to Spotting
+    then:
+    - service: timer.start
+      data:
+        entity_id: timer.yerp_mockup_session_duration_limit
+        duration: '{{ states(''input_number.yerp_mockup_session_duration_limit'')
+          | int(0) }}'
+    alias: If Spotting, Start the Timer
+  - if:
+    - condition: trigger
+      id: Session Status Change
+    - condition: not
+      conditions:
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: spotting
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: adminbypass
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: userbypass
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: elevated
+      - condition: state
+        entity_id: input_select.yerp_mockup_session_status
+        state: seekinghelp
+    - condition: state
+      entity_id: timer.yerp_mockup_session_duration_limit
+      state: active
+    then:
+    - service: timer.cancel
+      data:
+        entity_id: timer.yerp_mockup_session_duration_limit
+    alias: If Anything Else (other than bypass) and the Timer is On, Cancel the Timer
+  mode: restart
+- id: '2672024105630'
+  alias: Set theme on Home Assistant startup
+  description: ''
+  trigger:
+  - event: start
+    platform: homeassistant
+  action:
+  - service: frontend.set_theme
+    data:
+      name: yerp
+      mode: dark
+- id: '2672024133572'
+  alias: YERP [Mockup] Spotting
+  description: Test setup for moving YERP! over to an MQTT alarm.
+  trigger:
+  - platform: mqtt
+    topic: yerp/mockup/spotting/panel/set
+    payload: ARM_HOME
+    alias: ARM_HOME
+    id: ARM_HOME
+  - platform: mqtt
+    topic: yerp/mockup/spotting/panel/set
+    payload: ARM_CUSTOM_BYPASS
+    id: ARM_CUSTOM_BYPASS
+    alias: ARM_CUSTOM_BYPASS
+  - platform: mqtt
+    topic: yerp/mockup/spotting/panel/set
+    payload: DISARM
+    alias: DISARM
+    id: DISARM
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_area_enabled
+    to: 'on'
+    id: Enabled Boolean On
+    alias: Enabled Boolean On
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_area_enabled
+    to: 'off'
+    id: Enabled Boolean Off
+    alias: Enabled Boolean Off
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Enabled Boolean On
+    then:
+    - service: mqtt.publish
+      data:
+        topic: yerp/mockup/spotting/panel/availability
+        payload: online
+        retain: true
+  - if:
+    - condition: trigger
+      id: Enabled Boolean Off
+    then:
+    - service: mqtt.publish
+      data:
+        topic: yerp/mockup/spotting/panel/availability
+        payload: offline
+        retain: true
+  - if:
+    - condition: trigger
+      id: ARM_HOME
+    then:
+    - service: mqtt.publish
+      data:
+        topic: yerp/mockup/spotting/panel
+        payload: armed_home
+        retain: true
+  - if:
+    - condition: trigger
+      id: DISARM
+    then:
+    - service: mqtt.publish
+      data:
+        topic: yerp/mockup/spotting/panel
+        payload: disarmed
+        retain: true
+  - if:
+    - condition: trigger
+      id: ARM_CUSTOM_BYPASS
+    then:
+    - service: mqtt.publish
+      data:
+        topic: yerp/mockup/spotting/panel
+        payload: armed_custom_bypass
+        retain: true
+  mode: single
+- id: '2672024172504'
+  alias: YERP [Mockup] Presence Lights
+  description: YERP [Mockup] Presence Lights
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_mockup_session_active
+      state: 'on'
+    then:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id: light.bathroom_utility_lights
+  - if:
+    - condition: state
+      entity_id: input_boolean.yerp_mockup_session_active
+      state: 'off'
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.bathroom_utility_lights
+  mode: single
+- id: '2673633307220'
+  alias: YERP [Mockup] Light States (Primary)
+  description: ''
+  trigger:
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_threshold_countdown
+    id: Spotting Timer Starts
+    alias: Spotting Timer Starts
+    enabled: true
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_mockup_warmup
+    id: Warmup Starts
+    alias: Warmup Starts
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    to: standby
+    alias: Session is Standby
+    id: Session is Standby
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+    to: 'on'
+    id: Activity On
+    alias: Activity On
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+    to: 'on'
+    id: Activity Off
+    alias: Activity Off
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Warmup Starts
+    then:
+    - service: light.turn_on
+      data:
+        color_name: blue
+        brightness_pct: 30
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - repeat:
+        while:
+        - condition: state
+          entity_id: timer.yerp_mockup_warmup
+          state: active
+        sequence:
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 1
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            brightness_step_pct: 10
+          target:
+            entity_id: light.yerp_mockup_bulb
+    alias: Warmup Countdown
+  - if:
+    - condition: trigger
+      id: Session is Standby
+    then:
+    - repeat:
+        while:
+        - condition: state
+          entity_id: input_select.yerp_mockup_session_status
+          state: standby
+        sequence:
+        - service: light.turn_on
+          data:
+            brightness_pct: 30
+            color_name: red
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: orange
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: yellow
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: green
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: blue
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: indigo
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: violet
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - if: []
+          then: []
+    alias: Standby Animation
+  mode: restart
+- id: '2673635792308'
+  alias: Yerp [Mockup] Light States (Tertiary)
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+    to: 'on'
+    id: Activity On
+    alias: Activity On
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_session_active
+    to: 'on'
+    id: Activity Off
+    alias: Activity Off
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Warmup Starts
+    then:
+    - service: light.turn_on
+      data:
+        color_name: blue
+        brightness_pct: 30
+      target:
+        entity_id: light.yerp_mockup_bulb
+    - repeat:
+        while:
+        - condition: state
+          entity_id: timer.yerp_mockup_warmup
+          state: active
+        sequence:
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 1
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            brightness_step_pct: 10
+          target:
+            entity_id: light.yerp_mockup_bulb
+    alias: Warmup Countdown
+    enabled: false
+  - if:
+    - condition: trigger
+      id: Session is Standby
+    then:
+    - repeat:
+        while:
+        - condition: state
+          entity_id: input_select.yerp_mockup_session_status
+          state: standby
+        sequence:
+        - service: light.turn_on
+          data:
+            brightness_pct: 30
+            color_name: red
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: orange
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: yellow
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: green
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: blue
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: indigo
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - service: light.turn_on
+          data:
+            color_name: violet
+            brightness_pct: 30
+          target:
+            entity_id: light.yerp_mockup_bulb
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+        - if: []
+          then: []
+    alias: Standby Animation
+    enabled: false
+  - if:
+    - condition: trigger
+      id: Activity On
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        rgb_color:
+        - 0
+        - 255
+        - 0
+      target:
+        entity_id: light.kauf_rgb_sw_small_light
+  - if:
+    - condition: trigger
+      id: Activity Off
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.kauf_rgb_sw_small_light
+  mode: restart
+- id: '2673576924610'
+  alias: Mockup Visitor Bot
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.yerp_mockup_session_status
+    to: standby
+  condition: []
+  action:
+  - repeat:
+      while:
+      - condition: state
+        entity_id: input_boolean.yerp_mockup_area_enabled
+        state: 'on'
+      sequence:
+      - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_mockup_gate_status
+      - repeat:
+          count: '{{ range(0, 21) | random }}'
+          sequence:
+          - service: input_boolean.turn_on
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_mockup_session_active
+          - delay: 00:00:{{ range(0, 60) | random }}
+          - service: input_boolean.turn_off
+            data: {}
+            target:
+              entity_id: input_boolean.yerp_mockup_session_active
+          - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_off
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_mockup_gate_status
+      - delay: 00:00:{{ range(0, 60) | random }}
+      - service: input_boolean.turn_on
+        data: {}
+        target:
+          entity_id: input_boolean.yerp_mockup_gate_status
   mode: restart
