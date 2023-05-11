@@ -48,10 +48,13 @@
     - condition: trigger
       id: Elevated
     then:
-    - service: tts.picotts_remote_say
+    - service: tts.speak
       data:
-        entity_id: media_player.vlc_telnet
-        message: Please check on the bathroom.
+        cache: true
+        media_player_entity_id: media_player.yerp_demo
+        message: Please check on the physical bathroom.
+      target:
+        entity_id: tts.piper
     - service: input_boolean.turn_on
       data: {}
       target:
@@ -160,7 +163,7 @@
         flash: short
         color_name: green
       target:
-        area_id: bathroom
+        entity_id: light.yerp_boilerplate_lights
   - if:
     - condition: trigger
       id: Warmup Ends
@@ -173,7 +176,7 @@
         - 6
         - 179
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
   - if:
     - condition: trigger
       id: Spotting Begins
@@ -186,7 +189,7 @@
         - 0
         brightness_pct: 100
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_boilerplate_threshold'') | int(0)
           * 0.75 ) }}'
@@ -199,7 +202,7 @@
         brightness_pct: 100
         transition: 5
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_boilerplate_threshold'') | int(0)
           / 12 ) }}'
@@ -213,7 +216,7 @@
         transition: 5
         flash: long
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_boilerplate_threshold'') | int(0)
           / 12 ) }}'
@@ -227,7 +230,7 @@
         transition: 5
         flash: short
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
   - if:
     - condition: trigger
       id: Duration Limit Ends
@@ -345,7 +348,7 @@
         color_name: purple
         brightness_pct: 100
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
   - if:
     - condition: or
       conditions:
@@ -373,7 +376,7 @@
       data:
         color_name: pink
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
   mode: restart
 - id: '1672023987730'
   alias: YERP [Boilerplate] Spotting Flow
@@ -764,7 +767,7 @@
     - service: light.turn_off
       data: {}
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - service: mqtt.publish
       data:
         payload: offline
@@ -892,7 +895,7 @@
       - service: light.turn_off
         data: {}
         target:
-          entity_id: light.yerp_boilerplate_bulb
+          entity_id: light.yerp_boilerplate_lights
     - if:
       - condition: state
         entity_id: input_boolean.yerp_boilerplate_gate_status
@@ -918,9 +921,9 @@
   use_blueprint:
     path: YERP/area-configurator.yaml
     input:
-      activity_state: binary_sensor.zy_m100_presence
+      activity_state: binary_sensor.yerp_boilerplate_zy_m100_presence
       activity_boolean: input_boolean.yerp_boilerplate_session_active
-      gate_state: binary_sensor.yerp_boilerplate_door_contact
+      gate_state: binary_sensor.yerp_boilerplate_door
       gate_boolean: input_boolean.yerp_boilerplate_gate_status
 - id: '1672024077508'
   alias: YERP [Boilerplate] Session Duration Limit Flow
@@ -1141,6 +1144,11 @@
     to: 'on'
     id: Activity Off
     alias: Activity Off
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_boilerplate_area_enabled
+    to: 'off'
+    id: Area Off
   condition: []
   action:
   - if:
@@ -1152,7 +1160,7 @@
         color_name: blue
         brightness_pct: 30
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - repeat:
         while:
         - condition: state
@@ -1168,7 +1176,7 @@
           data:
             brightness_step_pct: 10
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
     alias: Warmup Countdown
   - if:
     - condition: trigger
@@ -1185,7 +1193,7 @@
             brightness_pct: 30
             color_name: red
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1196,7 +1204,7 @@
             color_name: orange
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1207,7 +1215,7 @@
             color_name: yellow
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1218,7 +1226,7 @@
             color_name: green
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1229,7 +1237,7 @@
             color_name: blue
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1240,7 +1248,7 @@
             color_name: indigo
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1251,7 +1259,7 @@
             color_name: violet
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1260,6 +1268,14 @@
         - if: []
           then: []
     alias: Standby Animation
+  - if:
+    - condition: trigger
+      id: Area Off
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.yerp_boilerplate_lights
   mode: restart
 - id: '1673635792308'
   alias: Yerp [Boilerplate] Light States (Tertiary)
@@ -1288,7 +1304,7 @@
         color_name: blue
         brightness_pct: 30
       target:
-        entity_id: light.yerp_boilerplate_bulb
+        entity_id: light.yerp_boilerplate_lights
     - repeat:
         while:
         - condition: state
@@ -1304,7 +1320,7 @@
           data:
             brightness_step_pct: 10
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
     alias: Warmup Countdown
     enabled: false
   - if:
@@ -1322,7 +1338,7 @@
             brightness_pct: 30
             color_name: red
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1333,7 +1349,7 @@
             color_name: orange
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1344,7 +1360,7 @@
             color_name: yellow
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1355,7 +1371,7 @@
             color_name: green
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1366,7 +1382,7 @@
             color_name: blue
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1377,7 +1393,7 @@
             color_name: indigo
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1388,7 +1404,7 @@
             color_name: violet
             brightness_pct: 30
           target:
-            entity_id: light.yerp_boilerplate_bulb
+            entity_id: light.yerp_boilerplate_lights
         - delay:
             hours: 0
             minutes: 0
@@ -1514,10 +1530,13 @@
     - condition: trigger
       id: Elevated
     then:
-    - service: tts.picotts_remote_say
+    - service: tts.speak
       data:
-        entity_id: media_player.vlc_telnet
-        message: Please check on the bathroom.
+        cache: true
+        media_player_entity_id: media_player.vlc_telnet_2
+        message: Please check on the mockup bathroom.
+      target:
+        entity_id: tts.piper
     - service: input_boolean.turn_on
       data: {}
       target:
@@ -1625,20 +1644,20 @@
         flash: short
         color_name: green
       target:
-        area_id: bathroom
+        entity_id: light.yerp_mockup_spotting_status_lights
   - if:
     - condition: trigger
       id: Warmup Ends
     then:
     - service: light.turn_on
       data:
-        brightness_pct: 100
+        brightness_pct: 1
         rgb_color:
         - 0
         - 6
         - 179
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_spotting_status_lights
   - if:
     - condition: trigger
       id: Spotting Begins
@@ -1651,7 +1670,7 @@
         - 0
         brightness_pct: 100
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_spotting_status_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) * 0.75
           ) }}'
@@ -1661,10 +1680,10 @@
         - 255
         - 194
         - 26
-        brightness_pct: 100
+        brightness_pct: 25
         transition: 5
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_spotting_status_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) / 12
           ) }}'
@@ -1674,11 +1693,11 @@
         - 255
         - 0
         - 0
-        brightness_pct: 100
+        brightness_pct: 25
         transition: 5
         flash: long
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_spotting_status_lights
     - delay:
         seconds: '{{ ( states(''input_number.yerp_mockup_threshold'') | int(0) / 12
           ) }}'
@@ -1692,7 +1711,7 @@
         transition: 5
         flash: short
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_spotting_status_lights
   - if:
     - condition: trigger
       id: Duration Limit Ends
@@ -1810,7 +1829,7 @@
         color_name: purple
         brightness_pct: 100
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.light.yerp_mockup_spotting_status_lights
   - if:
     - condition: or
       conditions:
@@ -1838,7 +1857,7 @@
       data:
         color_name: pink
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.light.yerp_mockup_spotting_status_lights
   mode: restart
 - id: '2672023987730'
   alias: YERP [Mockup] Spotting Flow
@@ -2227,7 +2246,7 @@
     - service: light.turn_off
       data: {}
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_model_bulb
     - service: mqtt.publish
       data:
         payload: offline
@@ -2355,7 +2374,7 @@
       - service: light.turn_off
         data: {}
         target:
-          entity_id: light.yerp_mockup_bulb
+          entity_id: light.yerp_mockup_model_bulb
     - if:
       - condition: state
         entity_id: input_boolean.yerp_mockup_gate_status
@@ -2382,9 +2401,9 @@
     path: YERP/area-configurator.yaml
     input:
       activity_boolean: input_boolean.yerp_mockup_session_active
-      gate_state: binary_sensor.yerp_mockup_door_contact
+      gate_state: binary_sensor.wink_door_sensor_window_door_is_open
       gate_boolean: input_boolean.yerp_mockup_gate_status
-      activity_state: binary_sensor.ecolink_pir_red_led_any
+      activity_state: binary_sensor.yerp_mockup_activity_group
 - id: '2672024077508'
   alias: YERP [Mockup] Session Duration Limit Flow
   description: ''
@@ -2451,96 +2470,6 @@
         entity_id: timer.yerp_mockup_session_duration_limit
     alias: If Anything Else (other than bypass) and the Timer is On, Cancel the Timer
   mode: restart
-- id: '2672024105630'
-  alias: Set theme on Home Assistant startup
-  description: ''
-  trigger:
-  - event: start
-    platform: homeassistant
-  action:
-  - service: frontend.set_theme
-    data:
-      name: yerp
-      mode: dark
-- id: '2672024133572'
-  alias: YERP [Mockup] Spotting
-  description: Test setup for moving YERP! over to an MQTT alarm.
-  trigger:
-  - platform: mqtt
-    topic: yerp/mockup/spotting/panel/set
-    payload: ARM_HOME
-    alias: ARM_HOME
-    id: ARM_HOME
-  - platform: mqtt
-    topic: yerp/mockup/spotting/panel/set
-    payload: ARM_CUSTOM_BYPASS
-    id: ARM_CUSTOM_BYPASS
-    alias: ARM_CUSTOM_BYPASS
-  - platform: mqtt
-    topic: yerp/mockup/spotting/panel/set
-    payload: DISARM
-    alias: DISARM
-    id: DISARM
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_mockup_area_enabled
-    to: 'on'
-    id: Enabled Boolean On
-    alias: Enabled Boolean On
-  - platform: state
-    entity_id:
-    - input_boolean.yerp_mockup_area_enabled
-    to: 'off'
-    id: Enabled Boolean Off
-    alias: Enabled Boolean Off
-  condition: []
-  action:
-  - if:
-    - condition: trigger
-      id: Enabled Boolean On
-    then:
-    - service: mqtt.publish
-      data:
-        topic: yerp/mockup/spotting/panel/availability
-        payload: online
-        retain: true
-  - if:
-    - condition: trigger
-      id: Enabled Boolean Off
-    then:
-    - service: mqtt.publish
-      data:
-        topic: yerp/mockup/spotting/panel/availability
-        payload: offline
-        retain: true
-  - if:
-    - condition: trigger
-      id: ARM_HOME
-    then:
-    - service: mqtt.publish
-      data:
-        topic: yerp/mockup/spotting/panel
-        payload: armed_home
-        retain: true
-  - if:
-    - condition: trigger
-      id: DISARM
-    then:
-    - service: mqtt.publish
-      data:
-        topic: yerp/mockup/spotting/panel
-        payload: disarmed
-        retain: true
-  - if:
-    - condition: trigger
-      id: ARM_CUSTOM_BYPASS
-    then:
-    - service: mqtt.publish
-      data:
-        topic: yerp/mockup/spotting/panel
-        payload: armed_custom_bypass
-        retain: true
-  mode: single
 - id: '2672024172504'
   alias: YERP [Mockup] Presence Lights
   description: YERP [Mockup] Presence Lights
@@ -2604,6 +2533,11 @@
     to: 'on'
     id: Activity Off
     alias: Activity Off
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_mockup_area_enabled
+    to: 'off'
+    id: Area Off
   condition: []
   action:
   - if:
@@ -2615,7 +2549,7 @@
         color_name: blue
         brightness_pct: 30
       target:
-        entity_id: light.yerp_mockup_bulb
+        entity_id: light.yerp_mockup_model_bulb
     - repeat:
         while:
         - condition: state
@@ -2631,7 +2565,7 @@
           data:
             brightness_step_pct: 10
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
     alias: Warmup Countdown
   - if:
     - condition: trigger
@@ -2648,7 +2582,7 @@
             brightness_pct: 30
             color_name: red
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2659,7 +2593,7 @@
             color_name: orange
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2670,7 +2604,7 @@
             color_name: yellow
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2681,7 +2615,7 @@
             color_name: green
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2692,7 +2626,7 @@
             color_name: blue
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2703,7 +2637,7 @@
             color_name: indigo
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2714,7 +2648,7 @@
             color_name: violet
             brightness_pct: 30
           target:
-            entity_id: light.yerp_mockup_bulb
+            entity_id: light.yerp_mockup_model_bulb
         - delay:
             hours: 0
             minutes: 0
@@ -2723,6 +2657,14 @@
         - if: []
           then: []
     alias: Standby Animation
+  - if:
+    - condition: trigger
+      id: Area Off
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.yerp_mockup_model_bulb
   mode: restart
 - id: '2673635792308'
   alias: Yerp [Mockup] Light States (Tertiary)
@@ -2737,130 +2679,11 @@
   - platform: state
     entity_id:
     - input_boolean.yerp_mockup_session_active
-    to: 'on'
+    to: 'off'
     id: Activity Off
     alias: Activity Off
   condition: []
   action:
-  - if:
-    - condition: trigger
-      id: Warmup Starts
-    then:
-    - service: light.turn_on
-      data:
-        color_name: blue
-        brightness_pct: 30
-      target:
-        entity_id: light.yerp_mockup_bulb
-    - repeat:
-        while:
-        - condition: state
-          entity_id: timer.yerp_mockup_warmup
-          state: active
-        sequence:
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 1
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            brightness_step_pct: 10
-          target:
-            entity_id: light.yerp_mockup_bulb
-    alias: Warmup Countdown
-    enabled: false
-  - if:
-    - condition: trigger
-      id: Session is Standby
-    then:
-    - repeat:
-        while:
-        - condition: state
-          entity_id: input_select.yerp_mockup_session_status
-          state: standby
-        sequence:
-        - service: light.turn_on
-          data:
-            brightness_pct: 30
-            color_name: red
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: orange
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: yellow
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: green
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: blue
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: indigo
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - service: light.turn_on
-          data:
-            color_name: violet
-            brightness_pct: 30
-          target:
-            entity_id: light.yerp_mockup_bulb
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 3
-            milliseconds: 0
-        - if: []
-          then: []
-    alias: Standby Animation
-    enabled: false
   - if:
     - condition: trigger
       id: Activity On
@@ -2869,19 +2692,24 @@
       data:
         brightness_pct: 100
         rgb_color:
+        - 251
         - 0
         - 255
-        - 0
       target:
-        entity_id: light.kauf_rgb_sw_small_light
+        entity_id: light.kauf_rgb_sw_small_light_2
   - if:
     - condition: trigger
       id: Activity Off
     then:
-    - service: light.turn_off
-      data: {}
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 0
+        - 255
+        - 0
+        brightness_pct: 100
       target:
-        entity_id: light.kauf_rgb_sw_small_light
+        entity_id: light.kauf_rgb_sw_small_light_2
   mode: restart
 - id: '2673576924610'
   alias: Mockup Visitor Bot
@@ -2926,4 +2754,269 @@
         data: {}
         target:
           entity_id: input_boolean.yerp_mockup_gate_status
+  mode: restart
+- id: '1683664349992'
+  alias: 'Tasmota Discovery: Siren'
+  description: ''
+  use_blueprint:
+    path: tasmota/discovery-tuya_siren.yaml
+    input:
+      mac_address: C8:2B:96:09:E3:F8
+      topic: siren
+      name: siren
+- id: '1683667841653'
+  alias: 'YERP! [Mockup] Tasmota Discovery: ZY-M100 mmWave Presence Sensor'
+  description: ''
+  use_blueprint:
+    path: tasmota/discovery_zy-m100.yaml
+    input:
+      tasmota_device: 75f4dd1eeacff7b0562a922d81f27a13
+      topic: zym-mockup
+- id: '1683668626544'
+  alias: 'YERP! [Boilerplate] Tasmota Discovery: ZY-M100 mmWave Presence Sensor'
+  description: ''
+  use_blueprint:
+    path: tasmota/discovery_zy-m100.yaml
+    input:
+      tasmota_device: ebf2ea50f774c40410dd56fce640d484
+      topic: tasmota_93AA50
+- id: '1683669992419'
+  alias: Controller - IKEA E1743 TRÅDFRI On/Off Switch & Dimmer
+  description: ''
+  use_blueprint:
+    path: EPMatt/ikea_e1743.yaml
+    input:
+      integration: ZHA
+      controller_device: b30728b5da4d81287b52918579b1b981
+      action_button_down_short:
+      - service: script.yerp_boilerplate_spotter_bypass
+        data: {}
+      button_down_double_press: false
+- id: '1683673176694'
+  alias: YERP! [Boilerplate] Bypass Button
+  description: ''
+  trigger:
+  - device_id: b30728b5da4d81287b52918579b1b981
+    domain: zha
+    platform: device
+    type: remote_button_short_press
+    subtype: turn_on
+  condition: []
+  action:
+  - service: script.yerp_boilerplate_spotter_bypass
+    data: {}
+  mode: restart
+- id: '1683765999398'
+  alias: 'YERP! [Mockup] 229 Light Relay '
+  description: ''
+  trigger:
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_229_warmup
+    id: Warmup Begins
+    alias: Warmup Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_229_warmup
+    id: Warmup Ends
+    alias: Warmup Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_229_warmup
+    id: Warmup is Canceled
+    alias: Warmup Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_229_threshold_countdown
+    id: Spotting Begins
+    alias: Spotting Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_229_threshold_countdown
+    id: Spotting Ends
+    alias: Spotting Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_229_threshold_countdown
+    id: Spotting is Canceled
+    alias: Spotting Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_229_session_duration_limit
+    id: Duration Limit Begins
+    alias: Duration Limit Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_229_session_duration_limit
+    id: Duration Limit Ends
+    alias: Duration Limit Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_229_session_duration_limit
+    id: Duration Limit is Canceled
+    alias: Duration Limit Canceled
+  - platform: event
+    event_type: timer.started
+    event_data:
+      entity_id: timer.yerp_229_failsafe_timer
+    id: Elevated Begins
+    alias: Elevated Begins
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.yerp_229_failsafe_timer
+    id: Elevated Ends
+    alias: Elevated Ends
+  - platform: event
+    event_type: timer.cancelled
+    event_data:
+      entity_id: timer.yerp_229_failsafe_timer
+    id: Elevated Canceled
+    alias: Elevated Canceled
+  - platform: state
+    entity_id:
+    - input_boolean.yerp_229_area_enabled
+    to: 'off'
+    id: Area Off
+    alias: Area Off
+  condition: []
+  action:
+  - if:
+    - condition: trigger
+      id: Warmup Begins
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        flash: short
+        color_name: green
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+  - if:
+    - condition: trigger
+      id: Warmup Ends
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        rgb_color:
+        - 0
+        - 6
+        - 179
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+  - if:
+    - condition: trigger
+      id: Spotting Begins
+    then:
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 38
+        - 128
+        - 0
+        brightness_pct: 100
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_229_threshold'') | int(0) * 0.75
+          ) }}'
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 194
+        - 26
+        brightness_pct: 100
+        transition: 5
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_229_threshold'') | int(0) / 12 )
+          }}'
+    - service: light.turn_on
+      data:
+        rgb_color:
+        - 255
+        - 0
+        - 0
+        brightness_pct: 100
+        transition: 5
+        flash: long
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+    - delay:
+        seconds: '{{ ( states(''input_number.yerp_229_threshold'') | int(0) / 12 )
+          }}'
+  - if:
+    - condition: trigger
+      id: Spotting Ends
+    then:
+    - service: light.turn_on
+      data:
+        brightness_pct: 100
+        transition: 5
+        flash: short
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
+  - if:
+    - condition: trigger
+      id: Duration Limit Ends
+    then:
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.vlc_telnet
+      data:
+        media_content_id: media-source://media_source/local/deskbell.mp3
+        media_content_type: audio/mpeg
+      metadata:
+        title: deskbell.mp3
+        thumbnail:
+        media_class: music
+        children_media_class:
+        navigateIds:
+        - {}
+        - media_content_type: app
+          media_content_id: media-source://media_source
+    enabled: false
+  - if:
+    - condition: trigger
+      id: Elevated Begins
+    then:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_229_failsafe_countdown
+    enabled: false
+  - if:
+    - condition: trigger
+      id: Elevated Ends
+    then:
+    - service: input_boolean.turn_on
+      data: {}
+      target:
+        entity_id: input_boolean.yerp_229_failsafe
+    - service: input_select.select_option
+      data:
+        option: seekinghelp
+      target:
+        entity_id: input_select.yerp_229_session_status
+    enabled: false
+  - if:
+    - condition: trigger
+      id: Area Off
+    then:
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.yerp_mockup_wall_bulb
   mode: restart
